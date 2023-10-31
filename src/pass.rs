@@ -82,12 +82,6 @@ pub struct PassInfo {
   /// The type or classification of the pass. This affects the ordering in which the pass
   /// is executed.
   kind: PassKind,
-  /// Whether the pass supports parallelization.
-  ///
-  /// Not all passes that support parallelization will be *actually* parallelized. This
-  /// is merely a hint when there is an opportunity for optimization, determined by the
-  /// pass manager.
-  supports_parallelization: bool,
 }
 
 pub trait Pass {
@@ -104,8 +98,6 @@ impl Pass for SemanticCheckPass {
     PassInfo {
       id: PassId::SemanticCheck,
       kind: PassKind::Analysis,
-      // TODO: For now, parallelization support is disabled for semantic check, until the implications are considered.
-      supports_parallelization: false,
     }
   }
 
@@ -144,7 +136,6 @@ impl Pass for LoweringPass {
     PassInfo {
       id: PassId::LlvmLowering,
       kind: PassKind::Backend,
-      supports_parallelization: false,
     }
   }
 
@@ -205,13 +196,11 @@ impl Pass for LoweringPass {
 #[derive(Default)]
 pub struct LifetimeAnalysisPass;
 
-// CONSIDER: Moving the pass implementations to their corresponding modules.
 impl Pass for LifetimeAnalysisPass {
   fn get_info(&self) -> PassInfo {
     PassInfo {
       id: PassId::LifetimeAnalysis,
       kind: PassKind::Analysis,
-      supports_parallelization: true,
     }
   }
 
@@ -251,9 +240,12 @@ impl ResolutionPass {
       if let symbol_table::RegistryItem::Function(function) = entry {
         call_graph.add_empty_entry(function.registry_id);
       } else if let symbol_table::RegistryItem::CallSite(call_site) = entry {
-        // BUG: (test:resolution_missing_function) This needs to be done after type checking and semantic analysis, otherwise stripping callee may fail due to the fact that the assumptions don't hold true before type checking and possibly semantic analysis. There's another problem, however: If this is done after type checking, since type checking phase and instantiation phase is not yet equipped to handle recursive calls, it would go into a stack overflow for recursive calls. Need to figure out how to properly position+handle the creation of the call graph. For now, graceful handling is implemented to simply ignore and skip if the callee cannot be resolved, or is not actually callable.
         let callee = match call_site.strip_callee(symbol_table) {
           Ok(callee) => callee,
+          // NOTE: In case that the callee is not actually a callable expression,
+          // simply ignore it and continue processing. This is a graceful
+          // handling of the problem, as further phases will emit appropriate
+          // diagnostics.
           Err(_) => continue,
         };
 
@@ -291,7 +283,6 @@ impl Pass for ResolutionPass {
     PassInfo {
       id: PassId::Resolution,
       kind: PassKind::Primary(0),
-      supports_parallelization: false,
     }
   }
 
@@ -428,7 +419,6 @@ impl Pass for TypeInferencePass {
     PassInfo {
       id: PassId::TypeInference,
       kind: PassKind::Primary(1),
-      supports_parallelization: false,
     }
   }
 

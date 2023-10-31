@@ -666,13 +666,13 @@ impl CallSite {
     &self,
     symbol_table: &symbol_table::SymbolTable,
   ) -> Result<Callable, &'static str> {
-    const NOT_CALLABLE_ERR: &str = "callee is not callable";
-    const MAX_ITERATIONS: usize = 1000;
+    const NOT_CALLABLE_ERR: &str = "callee is not actually a callable expression";
+    const MAX_DEBUG_ITERATIONS: usize = 10_000;
 
     // OPTIMIZE: Avoid cloning.
     let mut current = self.callee_expr.to_owned();
 
-    let mut iterations = 0;
+    let mut debug_iterations = 0;
 
     loop {
       match current.flatten() {
@@ -694,8 +694,12 @@ impl CallSite {
         _ => return Err(NOT_CALLABLE_ERR),
       }
 
-      iterations += 1;
-      debug_assert!(iterations < MAX_ITERATIONS);
+      debug_iterations += 1;
+
+      debug_assert!(
+        debug_iterations < MAX_DEBUG_ITERATIONS,
+        "possible infinite loop detected"
+      );
     }
   }
 }
