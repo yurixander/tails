@@ -1,0 +1,5 @@
+func main(argc: nat, argv: *str) -> nat:
+  0::nat
+
+func tests() -> unit:
+  discard main(0::nat, null)

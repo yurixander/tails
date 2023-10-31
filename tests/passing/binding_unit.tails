@@ -1,0 +1,7 @@
+func tests() -> unit:
+  let a = pass
+  let b = a
+  let c: unit = b
+  let d: unit = pass
+
+  d

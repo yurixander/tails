@@ -1,0 +1,5 @@
+func id(x: int) -> int:
+  x
+
+func tests() -> unit:
+  discard 123 |> id

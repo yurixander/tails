@@ -1,0 +1,91 @@
+type A<T> = T
+type B<T> = A<T>
+
+func a<T>(x: A<T>) -> unit:
+  pass
+
+func b<T>(x: B<T>) -> unit:
+  pass
+
+func c<T>(x: A<B<T>>) -> unit:
+  pass
+
+func d<T>(x: T) -> A<T>:
+  x
+
+func e<T>(x: T) -> B<T>:
+  x
+
+func f<T>(x: T) -> A<B<T>>:
+  x
+
+func g<T>(x: A<T>) -> B<T>:
+  x
+
+func h<T>(x: B<T>) -> A<T>:
+  x
+
+func i<T>(x: A<B<T>>) -> B<T>:
+  x
+
+func j<T, U>(x: A<T>, y: B<U>) -> A<B<T>>:
+  x
+
+func k<T, U>(x: A<T>, y: B<U>) -> (B<A<T>>, A<B<U>>):
+  (x, y)
+
+func tests() -> unit:
+  -- a
+  a::<int>(1)
+  a::<str>("test")
+  a::<bool>(true)
+
+  -- b
+  b::<int>(1)
+  b::<str>("test")
+  b::<bool>(true)
+
+  -- c
+  c::<int>(1)
+  c::<str>("test")
+  c::<bool>(true)
+
+  -- d
+  discard d::<int>(1)
+  discard d::<str>("test")
+  discard d::<bool>(true)
+
+  -- e
+  discard e::<int>(1)
+  discard e::<str>("test")
+  discard e::<bool>(true)
+
+  -- f
+  discard f::<int>(1)
+  discard f::<str>("test")
+  discard f::<bool>(true)
+
+  -- g
+  discard g::<int>(1)
+  discard g::<str>("test")
+  discard g::<bool>(true)
+
+  -- h
+  discard h::<int>(1)
+  discard h::<str>("test")
+  discard h::<bool>(true)
+
+  -- i
+  discard i::<int>(1)
+  discard i::<str>("test")
+  discard i::<bool>(true)
+
+  -- j
+  discard j::<int, real>(1, 3.14)
+  discard j::<str, str>("test", "test")
+  discard j::<bool, str>(true, "test")
+
+  -- k
+  discard k::<real, int>(3.14, 1)
+  discard k::<str, real>("test", 3.14)
+  discard k::<bool, str>(true, "test")

@@ -1,0 +1,8 @@
+func receive(a: &int) -> unit:
+  pass
+
+func tests() -> unit:
+  let a = &123
+
+  discard receive(a)
+  discard receive(&321)

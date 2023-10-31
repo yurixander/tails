@@ -1,0 +1,4 @@
+type A<T> = A
+
+func tests() -> unit:
+  let a: A<int> = 1

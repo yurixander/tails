@@ -1,0 +1,7 @@
+func foo(x: int) -> unit:
+  pass
+
+func tests() -> unit:
+  discard foo(1, 2)
+
+  pass

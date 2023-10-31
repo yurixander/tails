@@ -1,0 +1,8 @@
+func loopClosure(count: nat, callback: nat -> unit) -> unit:
+  discard callback(count)
+
+  if count == 0::nat: pass
+  else: loopClosure(count - 1::nat, callback)
+
+func tests() -> unit:
+  discard loopClosure(100::nat, |count: nat| pass)

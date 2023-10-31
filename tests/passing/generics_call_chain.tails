@@ -1,0 +1,24 @@
+func a<A>(x: A) -> A:
+  x
+
+func b<B>(x: B) -> B:
+  a::<B>(x)
+
+func c<T>(x: T) -> T:
+  b::<T>(x)
+
+func tests() -> unit:
+  -- a
+  discard a::<int>(1)
+  discard a::<str>("foo")
+  discard a::<real>(3.14)
+
+  -- b
+  discard b::<int>(1)
+  discard b::<str>("foo")
+  discard b::<unit>(pass)
+
+  -- c
+  discard c::<int>(1)
+  discard c::<str>("foo")
+  discard c::<real>(3.14)

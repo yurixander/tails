@@ -1,0 +1,5 @@
+func foo(x: unit, y: unit, z: int) -> int:
+  z
+
+func tests() -> unit:
+  discard foo(pass, pass, 1)

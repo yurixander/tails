@@ -1,0 +1,40 @@
+-- foreign:
+--   func malloc(size: nat64) :: opaque
+
+-- type Vec[E] = {pointer: *E, length: nat64, capacity: nat64}
+type Vec2<E> = E
+
+-- BUG: Test crashes with a panic if the return type is omitted (which is a valid situation).
+-- func alloc<T>(capacity: nat64) :: Vec<T>
+  -- let element_size = sizeof::<A> as nat64
+  -- let pointer = unsafe: malloc(element_size * capacity) as *A
+
+  -- {pointer: null, length: 0::nat64, capacity}
+
+-- func alloc2<T>(capacity: nat64) :: Vec<T>
+--   {pointer: null, length: 0::nat64, capacity}
+
+func alloc3<T>(value: T) -> Vec2<T>:
+  value
+
+-- func get<T>(vector: Vec<T>, index: nat64) :: T
+--   if index < vector.length then
+--     unsafe: *vector.pointer[index]
+--   -- else
+--   --   NOT_FOUND
+
+-- func set<T>(vector: Vec<T>, index: nat64, value: T) :: bool
+--   if index < vector.length then
+--     unsafe: vector.pointer[index] <* value
+
+--     true
+--   else
+--     false
+
+func tests() -> unit:
+  -- const CAPACITY: nat64 = 3::nat64
+  let vector = alloc3::<int>(123) -- BUG: (test:vector_generics) Test passes if the type hint for the binding is provided, or if a binding is not used at all (ie. `discard alloc3::<int>(123)`). Could it be due to binding's inference step? Expand this bug into its own test!
+
+  -- discard set(vector, 0::nat64, 123)::[int]
+  -- discard get(vector, 0::nat64)::[int]
+  pass

@@ -1,0 +1,7 @@
+func hof() -> int:
+  123
+
+func tests() -> unit:
+  let a = hof
+
+  discard a()

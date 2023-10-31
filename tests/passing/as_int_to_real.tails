@@ -1,0 +1,13 @@
+func a<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  -- upcast
+  discard a::<real16>(123::int8 as real16)
+  discard a::<real>(123::int16 as real)
+  discard a::<real64>(123::int as real64)
+
+  -- downcast
+  discard a::<int>(123::real64 as int)
+  discard a::<int16>(123::real as int16)
+  discard a::<int8>(123::real16 as int8)

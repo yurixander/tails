@@ -1,0 +1,19 @@
+type A<T> = *T
+type B<T> = **T
+type C<T> = {x: T}
+type D<T> = {x: *T}
+type E<T> = *A<T>
+
+func id<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  id::<A<str>>(null)
+
+  let a: A<int> = null::*int
+  let b: A<B<int>> = null
+  let c: A<B<C<int>>> = null
+  let d: D<int> = {x: null}
+  let e: E<int> = null
+
+  id::<A<int>>(a)

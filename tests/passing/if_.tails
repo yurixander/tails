@@ -1,0 +1,15 @@
+func tests() -> unit:
+  let a = if true: 1 else: 2
+  let b = if false: 1 else: 2
+
+  let c =
+    if true: 1
+    else: 2
+
+  let d = if true or true: 1 else: 2
+  let e = if true and true: 1 else: 2
+  let f = if true and true or true: 1 else: 2
+  let g = if (true and true) or true: 1 else: 2
+  let h = if true and (true or true): 1 else: 2
+
+  pass

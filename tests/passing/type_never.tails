@@ -1,0 +1,8 @@
+foreign:
+  func abort() -> never
+
+func a() -> never:
+  unsafe: abort()
+
+func tests() -> unit:
+  a()

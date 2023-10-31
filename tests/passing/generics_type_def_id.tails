@@ -1,0 +1,10 @@
+-- FIXME: This may be causing unexpected output? How is it passing (but failing with some other diagnostics, instead of a more accurate one?).
+-- type Id<T> = *T
+type Id<T> = T
+
+func tests() -> unit:
+  let a: Id<int> = 123
+  let b: Id<real> = 3.14
+  let c: Id<*int> = null -- BUG: This test passes if 'null' is provided hints (`::*int`), otherwise it fails! Might be a logic bug specific to the inference of the null value. Or perhaps it is the fact that during unification, generic type hints aren't unified against values? If they were to be unified, then it would be unification against generics (Id[*int] resolves to T). And since generic unification is ignored, that is likely the problem!
+  let d: Id<str> = "test"
+  let e: Id<{a: int}> = {a: 123}

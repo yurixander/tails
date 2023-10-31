@@ -1,0 +1,10 @@
+func a<T>(x: T) -> T:
+  let closure = |@x| x
+
+  closure()
+
+func tests() -> unit:
+  discard a::<int>(1)
+  discard a::<str>("test")
+  discard a::<real>(3.14)
+  discard a::<bool>(true)

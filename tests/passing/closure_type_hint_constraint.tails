@@ -1,0 +1,26 @@
+func tests() -> unit:
+  let a: () -> int = || 0
+  let b: () -> unit = || pass
+  let c: (unit) -> unit = |x| pass
+  let d: (unit) -> unit = |x: unit| pass
+  let e: (()) -> unit = |x| pass
+  let f: (()) -> unit = |x: ()| pass
+  let g: (int) -> unit = |x| pass
+  let h: (int) -> unit = |x: int| pass
+  let i: (int, int) -> unit = |x, y| pass
+  let j: (int, int) -> unit = |x: int, y: int| pass
+  let k: (int, int, int) -> unit = |x, y, z| pass
+  let l: (int, int, int) -> unit = |x: int, y: int, z: int| pass
+  let m: (int, real) -> unit = |x, y| pass
+  let n: (int, real) -> unit = |x: int, y: real| pass
+  let o: (int, real, str) -> unit = |x, y, z| pass
+  let p: (int, real, str) -> unit = |x: int, y: real, z: str| pass
+  let q: (int, real, str, bool) -> unit = |x, y, z, w| pass
+  let r: (int, real, str, bool) -> unit = |x: int, y: real, z: str, w: bool| pass
+  let s: (int) -> int = |x: int| x
+  let t: (int) -> (int, int) = |x: int| (x, x)
+  let u: (int) -> (int, int, int) = |x: int| (x, x, x)
+  let v: (int) -> (int, real) = |x: int| (x, x as real)
+  let w: (int) -> (int, real, str) = |x: int| (x, x as real, "test")
+  let x: (int) -> (int) -> int = |x': int| |y: int| x' + y
+  let y: (int, real) -> (real, int) -> unit = |x', y'| |z, w'| pass

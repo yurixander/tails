@@ -1,0 +1,17 @@
+func tests() -> unit:
+  -- literals
+  discard if true: 1 else: 0
+  discard if true: 3.14 else: 1.618
+  discard if true: "a" else: "b"
+
+  -- literals with unary operators
+  discard if true: -1 else: -2
+  discard if true: &1 else: &2
+
+  -- literals, binary operations (ungrouped)
+  discard if true: 1 + 1 else: 1 - 1
+  discard if true: (1 * 2 + 3) / 4 else: 3 / 2 + 1
+
+  -- literals, binary operations (grouped)
+  discard if true: (1 + 1) else: (1 - 1)
+  discard if true: ((1 * 2 + 3) / 4) else: (3 / 2 + 1)

@@ -1,0 +1,4 @@
+func tests() -> unit:
+  let a = null::*int
+
+  discard unsafe: a *= 1

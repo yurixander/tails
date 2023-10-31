@@ -1,0 +1,39 @@
+func two<A, B>(a: A, b: B) -> A:
+  discard a
+  discard b
+
+  a
+
+func three<A, B, C>(a: A, b: B, c: C) -> B:
+  discard a
+  discard b
+  discard c
+
+  b
+
+func four<A, B, C, D>(a: A, b: B, c: C, d: D) -> C:
+  discard a
+  discard b
+  discard c
+  discard d
+
+  c
+
+func tests() -> unit:
+  -- two
+  discard two::<int, int>(123, 123)
+  discard two::<real, int>(3.14, 123)
+  discard two::<str, real>("test", 3.14)
+  discard two::<bool, bool>(false, true)
+
+  -- three
+  discard three::<int, int, int>(123, 123, 123)
+  discard three::<real, int, str>(3.14, 123, "test")
+  discard three::<bool, bool, str>(false, true, "test")
+  discard three::<{a: int}, real, bool>({a: 123}, 3.14, true)
+
+  -- four
+  discard four::<int, int, int, int>(123, 123, 123, 123)
+  discard four::<int, str, real, {a: int}>(123, "test", 3.14, {a: 123})
+  discard four::<str, bool, bool, str>("test", false, true, "test")
+  discard four::<int, real, {a: int}, str>(123, 3.14, {a: 123}, "test")

@@ -1,0 +1,12 @@
+-- BUG: This passes all stages, and produces LLVM verification failure. It should be failing before lowering stage.
+func foo<T>(a: T) -> T:
+  let aa: T = true -- TODO: The ideal behavior is that a diagnostic showing incompatible types should be emitted here (ie. `bool` vs `T`). This is what Rust does, for example: `fn foo<T>() -> T { 123 }` produces `expected 'T', found 'i32'`. In other words, during unification, if the generic has no substitution/could not be resolved (possible when the function is evaluated without any artifact), then the diagnostic should be emitted.
+
+  aa
+
+func tests() -> unit:
+  -- TODO: Need to constrain call site's generics with its arguments.
+  -- discard foo(1::int)::[int16]
+
+  discard foo<bool>(true)
+  discard foo<int>(1::int)

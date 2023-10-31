@@ -1,0 +1,7 @@
+type A = B
+type B = A
+
+func tests() -> unit:
+  let a: A = 123
+
+  pass

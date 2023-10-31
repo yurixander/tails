@@ -1,0 +1,2 @@
+func tests() -> unit:
+  let a = |a: int| a -- FIXME: If this is done this way, then closures cannot call themselves?

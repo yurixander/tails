@@ -1,0 +1,13 @@
+func a() -> int:
+  if true: 1 elif false: b() else: c()
+
+func b() -> int:
+  if true: 1 elif false: a() else: c()
+
+func c() -> int:
+  if true: 1 elif false: a() else: b()
+
+func tests() -> unit:
+  discard a()
+  discard b()
+  discard c()

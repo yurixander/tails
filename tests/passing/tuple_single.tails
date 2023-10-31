@@ -1,0 +1,12 @@
+func unbox<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  unbox::<(int)>((0,))
+  unbox::<(int, int)>((1, 2))
+  unbox::<(*int)>((null::*int,))
+  unbox::<(str)>(("test",))
+  unbox::<(nat)>((0::nat,))
+  unbox::<(real)>((3.14,))
+  unbox::<((int))>(((1,),))
+  unbox::<(((int)))>((((1,),),))

@@ -1,0 +1,5 @@
+func foo() -> int:
+  123
+
+func tests() -> unit:
+  discard foo()

@@ -1,0 +1,19 @@
+type Id<T> = T
+
+func a'() -> Id<int>:
+  123
+
+func b'(x: Id<int>) -> unit:
+  pass
+
+func c'(x: Id<int>) -> Id<int>:
+  x
+
+func tests() -> unit:
+  let a: Id<int> = 123
+  let b: Id<real> = 3.14
+  let c: Id<str> = "test"
+
+  discard a'()
+  b'(123)
+  discard c'(123)

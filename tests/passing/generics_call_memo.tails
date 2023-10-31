@@ -1,0 +1,9 @@
+func id<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  id::<int>(1)
+  id::<int>(2)
+  id::<int>(3)
+  id::<str>("hello")
+  id::<str>("world")

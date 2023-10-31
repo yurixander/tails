@@ -1,0 +1,15 @@
+type A = int
+type B = A
+type C = B
+
+func unbox(x: int) -> unit:
+  pass
+
+func tests() -> unit:
+  let a: A = 1
+  let b: B = 2
+  let c: C = 3
+
+  unbox(a)
+  unbox(b)
+  unbox(c)

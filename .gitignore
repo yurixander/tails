@@ -1,0 +1,11 @@
+/target
+/.test_dir
+*.log
+*.todo
+.DS_Store
+.idea/
+.github/
+/stdlib/
+a.out
+test.ll
+.vscode/

@@ -1,0 +1,11 @@
+func unbox<T>(a: T) -> unit:
+  pass
+
+func tests() -> unit:
+  let a: unit = if true: pass else: pass
+  let b: unit = if true: discard 1 else: pass
+  let c: unit = if true: pass else: discard 1
+
+  unbox::<unit>(a)
+  unbox::<unit>(b)
+  unbox::<unit>(c)

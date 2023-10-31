@@ -1,0 +1,9 @@
+func a(a': unit) -> unit:
+  pass
+
+func b(a': unit) -> unit:
+  pass
+
+func tests() -> unit:
+  a(pass)
+  b(pass)

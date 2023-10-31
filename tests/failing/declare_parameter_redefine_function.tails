@@ -1,0 +1,5 @@
+func a(a: int) -> unit:
+  pass
+
+func tests() -> unit:
+  a(123)

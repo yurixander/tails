@@ -1,0 +1,5 @@
+func tests() -> unit:
+  discard if true: 3
+  elif false: 4
+  elif true: 5
+  else: 6

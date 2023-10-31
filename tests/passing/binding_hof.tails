@@ -1,0 +1,16 @@
+func hof1() -> int:
+  123
+
+func hof2(x: int) -> int:
+  x
+
+func tests() -> unit:
+  let a = hof1
+  let b = a
+  let c = hof2
+  let d = c
+
+  discard a()
+  discard b()
+  discard c(1)
+  discard d(1)

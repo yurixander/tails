@@ -1,0 +1,13 @@
+foreign:
+  var stdin: *int8
+
+func a<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  unsafe:
+    let stdinPtr: *int8 = stdin
+    let stdinDeref: int8 = *stdin
+
+    a::<*int8>(stdinPtr)
+    a::<int8>(stdinDeref)

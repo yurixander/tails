@@ -1,0 +1,9 @@
+func receiver(a: *int, b: *int, c: int) -> unit:
+  pass
+
+func tests() -> unit:
+  let a = null::*int
+  let b = unsafe: a[0::nat64]
+  let c = unsafe: *b
+
+  discard receiver(a, b, c)

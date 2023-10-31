@@ -1,0 +1,12 @@
+func hof1(x: int) -> int:
+  x + 1
+
+func hof2(a: int, b: int) -> int:
+  a + b
+
+func tests() -> unit:
+  let a = hof1
+  let b = hof2
+
+  discard a(1)
+  discard b(1, 2)

@@ -1,0 +1,4 @@
+func tests() -> unit:
+  123()
+
+  pass

@@ -1,0 +1,8 @@
+func tests() -> unit:
+  let a' = 0
+  let b' = 1
+  let c' = a' + b'
+
+  discard a'
+  discard b'
+  discard c'

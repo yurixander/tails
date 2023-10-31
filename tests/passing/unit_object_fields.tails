@@ -1,0 +1,5 @@
+func tests() -> unit:
+  let a: {x: unit} = {x: pass}
+  let b: {x: int, y: unit, z: int} = {x: 1, y: pass, z: 2}
+
+  pass

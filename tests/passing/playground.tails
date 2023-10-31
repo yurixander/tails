@@ -1,0 +1,28 @@
+type Id<T> = T
+type A = int
+type B = *int
+type C = A
+type D = *A
+type E = C
+type F<T> = *T
+type G<T> = F<T>
+type H = *Id<int>
+type I<T> = *Id<T>
+type J<T> = *Id<*T>
+
+func tests() -> unit:
+  let a: Id<int> = 123
+  let b: Id<*int> = null
+  let c: Id<**int> = null
+  let d: Id<A> = 123
+  let e: Id<*A> = null
+  let f: A = 123
+  let g: B = null
+  let h: C = 123
+  let i: D = null
+  let j: E = 123
+  let k: F<int> = null
+  let l: G<int> = null
+  let m: H = null
+  let n: I<int> = null
+  let o: J<int> = null

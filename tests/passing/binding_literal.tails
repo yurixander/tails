@@ -1,0 +1,33 @@
+func id<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  let a = 0
+  let b = 1
+  let c = 2147483648
+  let d = 2147483649
+  let e = 0::int
+  let f = 0::nat
+  let g = 1::nat
+  let h = 1::int8
+  let i = 1::int16
+  let j = 1::int
+  let k = 1::int64
+  let l = 3.14::real
+  let m = null::*unit
+  let n = 'a'
+
+  id::<int>(a)
+  id::<int>(b)
+  id::<int>(c)
+  id::<int>(d)
+  id::<int>(e)
+  id::<nat>(f)
+  id::<nat>(g)
+  id::<int8>(h)
+  id::<int16>(i)
+  id::<int>(j)
+  id::<int64>(k)
+  id::<real>(l)
+  id::<*unit>(m)
+  id::<char>(n)

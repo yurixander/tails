@@ -1,0 +1,19 @@
+func tests() -> unit:
+  -- nested, unit
+  if true:
+    if true:
+      pass
+
+  -- nested, value
+  discard if true:
+    if true: 1 else: 0
+  else:
+    if false: 0 else: 1
+
+  -- nested in condition
+  discard if (if true: true else: false): 1 else: 2
+  discard if (if true: true else: false) and true: 1 else: 2
+  discard if (if true: true else: false): (if true: 1 else: 2) else: 2
+  discard if if true: true else: false: if true: 1 else: 2 else: if true: 1 else: 2
+
+  pass

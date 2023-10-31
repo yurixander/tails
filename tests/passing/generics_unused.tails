@@ -1,0 +1,8 @@
+func a<T>(x: T) -> unit:
+  pass
+
+func b<T>(x: int, y: T) -> unit:
+  pass
+
+func tests() -> unit:
+  pass

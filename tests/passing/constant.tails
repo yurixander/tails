@@ -1,0 +1,20 @@
+const A: int = 123
+
+func a<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  const B: bool = true
+  const C: bool = false
+  const D: int = 1 + 2
+  const E: int = D
+  const F: int = E + D
+  const G: int = F + A + E
+
+  a::<int>(A)
+  a::<bool>(B)
+  a::<bool>(C)
+  a::<int>(D)
+  a::<int>(E)
+  a::<int>(F)
+  a::<int>(G)

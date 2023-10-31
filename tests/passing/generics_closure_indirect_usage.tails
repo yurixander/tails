@@ -1,0 +1,20 @@
+func a<T>(x: T) -> T:
+  (|y: T| y)(x)
+
+func b<T>(x: T) -> T:
+  (|@x| x)()
+
+func tests() -> unit:
+  -- a
+  let a' = a::<int>(1)
+  let b' = a::<real>(3.14)
+  let c = a::<str>("hello")
+  let d = a::<bool>(true)
+  let e = a::<*int>(null)
+
+  -- b
+  let f = b::<int>(1)
+  let g = b::<real>(3.14)
+  let h = b::<str>("hello")
+  let i = b::<bool>(true)
+  let j = b::<*int>(null)

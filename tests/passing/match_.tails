@@ -1,0 +1,24 @@
+func tests() -> unit:
+  -- TODO: Test also that it can be stored in a binding.
+
+  let a = match 1:
+    1 => 2
+    _ => 0
+
+  let b = match 2:
+    1 => 2
+    2 => 3
+    3 => 4
+    _ => 0
+
+  -- let c = match "test":
+  --   "test" => 1
+  --   "other" => 2
+  --   _ => 0
+
+  let d = match 'a':
+    'a' => 1
+    'b' => 2
+    _ => 0
+
+  pass

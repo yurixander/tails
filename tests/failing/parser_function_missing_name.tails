@@ -1,0 +1,5 @@
+func () -> unit:
+  pass
+
+func tests() -> unit:
+  pass

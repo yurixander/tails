@@ -1,0 +1,20 @@
+type Id<T> = T
+
+func a<T>(x: T) -> unit:
+  pass
+
+func b<T>() -> nat64:
+  sizeof::<T>
+
+func tests() -> unit:
+  let a' = sizeof::<Id<int>>
+  let b' = sizeof::<Id<Id<int>>>
+
+  -- a
+  a::<nat64>(a')
+
+  -- b
+  let decl1: nat64 = b::<int>()
+  let decl2: nat64 = b::<nat64>()
+  let decl3: nat64 = b::<str>()
+  let decl4: nat64 = b::<{x: int, y: real}>()

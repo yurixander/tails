@@ -1,0 +1,13 @@
+[package]
+name = "tails"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = [
+  "llvm15-0",
+] }
+codespan-reporting = "0.11.1"
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"

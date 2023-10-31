@@ -1,0 +1,5 @@
+func a(x: *int) -> unit:
+  pass
+
+func tests() -> unit:
+  discard a(null)

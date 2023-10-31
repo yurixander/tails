@@ -1,0 +1,14 @@
+func a() -> unit:
+  pass
+
+func b<T>() -> unit:
+  pass
+
+func c<A, B>() -> unit:
+  pass
+
+func tests() -> unit:
+  a::<int>()
+  b::<int, real>()
+  b::<unit>()
+  c::<real>()

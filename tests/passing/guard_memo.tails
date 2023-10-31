@@ -1,0 +1,10 @@
+func tests() -> unit:
+  -- division by zero
+  discard 1 / 0
+  discard 1 / 1
+  discard 2 / 1
+
+  -- null dereference
+  discard unsafe: *null::*unit
+  discard unsafe: *null::*int
+  discard unsafe: *null::*real

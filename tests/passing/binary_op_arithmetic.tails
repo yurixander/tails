@@ -1,0 +1,18 @@
+func id(x: int) -> unit:
+  pass
+
+func tests() -> unit:
+  let x = 1
+  let y = 2
+
+  -- simple
+  id(x + y)
+  id(x - y)
+  id(x * y)
+  id(x / y)
+
+  -- complex
+  id((x + y) - x)
+  id((x + y) - (x / y))
+  id((x) - (x + x / y))
+  id((x) / y - (x + x / y) + y + x)

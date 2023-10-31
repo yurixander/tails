@@ -1,0 +1,6 @@
+func tests() -> unit:
+  let a: _ = 1
+  let b: _ = 3.14
+  let c: _ = "hello"
+  let d: _ = true
+  let e: _ = null::*int

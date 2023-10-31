@@ -1,0 +1,19 @@
+func id<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  -- literals
+  id::<int>(0)
+  id::<int>(1)
+  id::<int>(-1)
+  id::<int>(2147483648)
+  id::<int>(2147483649)
+  id::<int>(0::int)
+  id::<nat>(0::nat)
+  id::<nat>(1::nat)
+  id::<int8>(1::int8)
+  id::<int16>(1::int16)
+  id::<int>(1::int)
+  id::<int64>(1::int64)
+  id::<str>("test")
+  id::<char>('a')

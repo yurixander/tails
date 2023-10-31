@@ -1,0 +1,5 @@
+func id<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  discard id::<int>(123)

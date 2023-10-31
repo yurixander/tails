@@ -1,0 +1,6 @@
+func tests() -> unit:
+  let a = 123;
+
+  a();
+
+  pass

@@ -1,0 +1,6 @@
+func tests() -> unit:
+  let a = null::*int
+  let b: *int = null
+  let c: **int = null
+  let d = null
+  let e: *int = d

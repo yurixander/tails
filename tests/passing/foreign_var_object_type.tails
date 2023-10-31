@@ -1,0 +1,9 @@
+-- REVIEW: Globals are being accessed on the output. Is this expected? Is it because global values are pointer values?
+
+type Obj = {x: int, b: real}
+
+foreign:
+  var a: *Obj
+
+func tests() -> unit:
+  let a' = unsafe: *a

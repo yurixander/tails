@@ -1,0 +1,9 @@
+func a() -> () -> int:
+  || 123
+
+func id<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  id::<() -> int>(a())
+  id::<int>(a()())

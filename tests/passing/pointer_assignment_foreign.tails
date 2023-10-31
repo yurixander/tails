@@ -1,0 +1,5 @@
+foreign:
+  var stdin: *int8
+
+func tests() -> unit:
+  unsafe: stdin *= 1::int8

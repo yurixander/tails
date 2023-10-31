@@ -1,0 +1,5 @@
+func id<T>(x: T) -> T:
+  x
+
+func tests() -> unit:
+  discard id |> id -- FIXME: Would need to provide type parameters to the `id` reference.

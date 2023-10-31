@@ -1,0 +1,12 @@
+type A<T> = *T
+type B<T> = {a: T}
+type C<T> = {a: T, b: T}
+type D<T> = &T
+type E<T> = **T
+
+func tests() -> unit:
+  let a: A<int> = null::*int
+  let b: B<int> = {a: 0}
+  let c: C<int> = {a: 1, b: 2}
+  let d: D<int> = &123
+  let e: E<int> = null::**int

@@ -1,0 +1,9 @@
+-- REVISE: This won't be emitted.
+func tests() -> unit:
+  let a = 123::int
+  let b = 1::int8
+  let c = 2::int16
+
+  discard a + a
+  discard b + b
+  discard c + c

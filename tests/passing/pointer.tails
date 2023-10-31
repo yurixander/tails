@@ -1,0 +1,16 @@
+func tests() -> unit:
+  -- dereference
+  let a: *int = null
+  let b: **int = null
+  let c: ***int = null
+
+  discard unsafe: *a
+  discard unsafe: **b
+  discard unsafe: ***c
+  discard unsafe: *(a)
+  discard unsafe: (*a) + (*a)
+
+  -- opaque pointers
+  let d: opaque = null::opaque
+  let e: *opaque = null
+  let f: **opaque = null

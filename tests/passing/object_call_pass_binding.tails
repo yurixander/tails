@@ -1,0 +1,11 @@
+type Obj = {a: int, b: int}
+
+func unbox<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  let a: Obj = {a: 1, b: 2}
+  let b: Obj = {a: 1, b: 2}
+
+  unbox::<Obj>(a)
+  unbox::<Obj>(b)

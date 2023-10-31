@@ -1,0 +1,10 @@
+foreign:
+  func printf(format: str, ...) -> int
+
+func tests() -> unit:
+  unsafe:
+    discard printf("test")
+    discard printf("test %d", 1)
+    discard printf("test %d %d", 1, 2)
+    discard printf("test %d %d %d", 1, 2, 3)
+    discard printf("test %f", 3.14)

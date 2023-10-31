@@ -1,0 +1,16 @@
+enum SumType:
+  A(int),
+  B((int, nat)),
+  C((int)),
+  D({a: int})
+  -- E(SumType)
+
+func tests() -> unit:
+  let a = SumType::A!(1)
+  let b = SumType::B!((2, 0::nat))
+  let c = SumType::C!((1,))
+  let d = SumType::D!({a: 1})
+
+  -- nested
+  -- let e = SumType::E!(SumType::A(1))
+  -- let f = SumType::E!(a)

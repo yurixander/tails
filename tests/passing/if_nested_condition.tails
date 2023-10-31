@@ -1,0 +1,9 @@
+func tests() -> unit:
+  -- value, `then` and `else` branches
+  discard if if true: true else: false: 1 else: 0
+
+  -- unit, `then` branch
+  if if true: true else: false: pass
+
+  -- unit, `then` and `else` branches
+  if if true: true else: false: pass else: pass

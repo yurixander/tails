@@ -1,0 +1,6 @@
+func tests() -> unit:
+  -- strings
+  let string1 = "test"
+  let string2 = string1
+
+  -- TODO: Need a lot more tests. Still giving problems. Try inline access combined with assignments, and so on.

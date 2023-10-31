@@ -1,0 +1,31 @@
+type A = int
+type B = A
+type Person = {name: str, age: int}
+
+func a() -> A:
+  123
+
+func b() -> B:
+  123
+
+func c(x: A) -> unit:
+  pass
+
+func d() -> A:
+  321
+
+func e(x: A) -> A:
+  321
+
+func person() -> Person:
+  {name: "john", age: 42}
+
+func tests() -> unit:
+  let a': Person = {name: "john", age: 42}
+
+  discard a()
+  discard b()
+  discard c(0)
+  discard d()
+  discard e(0)
+  discard person()

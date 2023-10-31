@@ -1,0 +1,5 @@
+type A<T> = B<T>
+type B<T> = A<T>
+
+func tests() -> unit:
+  pass

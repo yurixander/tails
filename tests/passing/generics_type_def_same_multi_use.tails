@@ -1,0 +1,14 @@
+type A<T> = *T
+type B<T> = T
+
+func tests() -> unit:
+  -- A
+  let a: A<int> = null
+  let b: A<A<int>> = null
+  let c: A<A<A<int>>> = null
+  let d: *A<int> = null
+  let e: *A<A<int>> = null
+  let f: *A<*A<int>> = null
+
+  -- B
+  let g: B<B<int>> = 123

@@ -1,0 +1,5 @@
+func foo(x: int) -> unit:
+  pass
+
+func tests() -> unit:
+  foo(123)

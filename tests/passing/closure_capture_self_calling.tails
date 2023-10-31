@@ -1,0 +1,7 @@
+func a() -> int:
+  let x = 123;
+
+  (|@x| x)()
+
+func tests() -> unit:
+  discard a()

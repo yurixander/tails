@@ -1,0 +1,2 @@
+func tests() -> unit:
+  let a: int = 123

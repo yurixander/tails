@@ -1,0 +1,4 @@
+const A: unit = pass
+
+func tests() -> unit:
+  discard A

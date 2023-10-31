@@ -1,0 +1,6 @@
+type Second<B> = B
+type First<A> = Second<A>
+
+func tests() -> unit:
+  let a: First<int> = 123
+  let b: int = 123

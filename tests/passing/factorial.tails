@@ -1,0 +1,9 @@
+func factorial2(n: int, acc: int) -> int:
+  if n == 0: acc else: factorial2(n - 1, n * acc)
+
+func factorial1(n: int) -> int:
+  if n == 0: 1 else: n * factorial1(n - 1)
+
+func tests() -> unit:
+  discard factorial1(3)
+  discard factorial2(3, 1)

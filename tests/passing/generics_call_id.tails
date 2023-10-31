@@ -1,0 +1,9 @@
+func id<T>(x: T) -> T:
+  x
+
+func tests() -> unit:
+  discard id::<int>(123)
+  discard id::<real>(3.14)
+  discard id::<*int>(null::*int)
+  discard id::<str>("test")
+  discard id::<{a: int}>({a: 123})

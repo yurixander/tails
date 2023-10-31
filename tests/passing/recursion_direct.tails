@@ -1,0 +1,5 @@
+func a() -> int:
+  if true: 1 else: a()
+
+func tests() -> unit:
+  discard a()

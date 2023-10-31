@@ -1,0 +1,7 @@
+func a(x: int) -> unit:
+  const A: int = x
+
+  pass
+
+func tests() -> unit:
+  a(123)

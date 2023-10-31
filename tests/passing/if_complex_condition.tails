@@ -1,0 +1,14 @@
+func tests() -> unit:
+  -- ungrouped
+  if true and false: pass
+  if true xor (false nor true): pass
+  if (true and true) or (false or false): pass
+  if true and true or true nor true: pass
+  if true xor (true and true) nor true: pass
+
+  -- grouped
+  if (true and false): pass
+  if (true xor (false nor true)): pass
+  if ((true and true) or (false or false)): pass
+  if (true and true or true nor true): pass
+  if (true xor (true and true) nor true): pass

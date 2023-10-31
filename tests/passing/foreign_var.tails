@@ -1,0 +1,11 @@
+-- REVIEW: Globals are being accessed on the output. Is this expected? Is it because global values are pointer values?
+
+foreign:
+  var stdout: *int8
+  var stdin: *int8
+  var stderr: *int8
+
+func tests() -> unit:
+  discard stdout
+  discard stdin
+  discard stderr

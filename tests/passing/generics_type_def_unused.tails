@@ -1,0 +1,15 @@
+type A<T> = int
+type B<T, U> = T
+type C<T, U> = {x: int, y: U}
+
+func tests() -> unit:
+  -- A
+  let a: A<int> = 1
+  let b: A<str> = 2
+
+  -- B
+  let c: B<int, str> = 3
+  let d: B<int, int> = 4
+
+  -- C
+  let e: C<int, str> = {x: 5, y: "test"}

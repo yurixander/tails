@@ -1,0 +1,9 @@
+func unbox<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  let a: (int) = (0,)
+  -- let b: (int, str) = (1, "test")
+
+  unbox::<(int)>(a)
+  -- unbox(b)

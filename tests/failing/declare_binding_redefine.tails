@@ -1,0 +1,5 @@
+func tests() -> unit:
+  let a = 1
+  let a = 2
+
+  pass

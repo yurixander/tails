@@ -1,0 +1,14 @@
+func tests() -> unit:
+  -- BUG: This appears in-scope for closures: let hello_from_the_other_side = 124. Perhaps name resolution must be handled differently for closures: closures' scope should be created in an 'isolated' scope, with nothing on top of it (ie. no parent scope), except for the global scope.
+
+  -- BUG: (tag:lifetime-analysis) The logic is wrong, it expects all references to be references to bindings? It is not always the case! For example, here the reference is made to a parameter.
+  let a = |n: int|
+    n * 2
+
+  let b = || 0
+
+  discard a(0)
+
+  let c = (|| 1222)()
+
+  discard a(b())

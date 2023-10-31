@@ -1,0 +1,38 @@
+func id<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  -- unannotated
+  let a = 1
+  let b = a
+  let c = a + b
+  let d = null::*int
+  let e = d
+  let f = "test"
+  let g = if true: a else: b
+  let h = true
+  let i = || 0
+  let j = || pass
+
+  let k = if h:
+    pass
+
+  -- annotated
+  let l: int = 1
+  let m: int = l
+  let n: *int = null
+
+  -- evaluate
+  id::<int>(a)
+  id::<int>(b)
+  id::<int>(c)
+  id::<*int>(d)
+  id::<*int>(null::*int)
+  id::<str>("hi")
+  id::<int>(123)
+  id::<bool>(false)
+  id::<() -> int>(i)
+  id::<() -> unit>(j)
+  id::<int>(l)
+  id::<int>(m)
+  id::<*int>(n)

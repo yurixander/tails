@@ -1,0 +1,8 @@
+func zero<T>() -> unit:
+  pass
+
+func tests() -> unit:
+  discard zero::<int>()
+  discard zero::<real>()
+  discard zero::<str>()
+  discard zero::<*int>()

@@ -1,0 +1,9 @@
+func a'(x: unit) -> unit:
+  pass
+
+func tests() -> unit:
+  let a = pass
+  let b = |@a| a
+  let c: unit = b()
+
+  a'(c)

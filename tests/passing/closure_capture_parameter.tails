@@ -1,0 +1,7 @@
+func a(x: int) -> int:
+  let closure = |@x| x
+
+  closure()
+
+func tests() -> unit:
+  discard a(123)

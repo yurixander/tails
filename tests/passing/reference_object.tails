@@ -1,0 +1,11 @@
+type Obj = {a: int, b: str}
+
+func receive(a: &Obj) -> unit:
+  pass
+
+func tests() -> unit:
+  let a: Obj = {a: 123, b: "test"}
+
+  discard receive(&a)
+
+  pass

@@ -1,0 +1,35 @@
+type Id<T> = T
+
+func a<T>(x: Id<T>) -> unit:
+  pass
+
+func c<T>(x: Id<T>) -> Id<T>:
+  x
+
+func d<T>(x: Id<Id<T>>) -> unit:
+  pass
+
+func e<T>(x: Id<Id<T>>) -> Id<Id<Id<T>>>:
+  x
+
+func f<A, B>(x: Id<A>, y: Id<B>, z: Id<A>) -> Id<B>:
+  y
+
+func tests() -> unit:
+  a::<int>(123)
+  a::<str>("test")
+  a::<unit>(pass)
+
+  -- REVISE: The `b` function was removed. Make use of the name `b` in the tests below.
+  discard c::<int>(123)
+  discard c::<str>("test")
+  discard c::<unit>(pass)
+  d::<int>(123)
+  d::<str>("test")
+  d::<unit>(pass)
+  discard e::<int>(123) -- BUG: Without the `discard` keyword, this fails with `TypeResolutionError(CouldNotFindSubstitutionInAnyUniverseInUniverseStack)`! Why? Check inference for `discard`.
+  discard e::<str>("test")
+  discard e::<unit>(pass)
+  discard f::<int, int>(123, 456, 789)
+  discard f::<int, str>(123, "test", 456)
+  discard f::<unit, str>(pass, "test", pass)

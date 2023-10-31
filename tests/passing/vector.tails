@@ -1,0 +1,34 @@
+foreign:
+  func malloc(size: nat64) -> opaque
+
+type Element = int
+type Vec = {pointer: *Element, length: nat64, capacity: nat64}
+
+const NOT_FOUND: Element = -1
+
+func alloc(capacity: nat64) -> Vec:
+  let elementSize = sizeof::<Element> as nat64
+  let pointer = unsafe: malloc(elementSize * capacity) as *Element
+
+  {pointer, length: 0::nat64, capacity}
+
+func get(vector: Vec, index: nat64) -> Element:
+  if index < vector.length:
+    unsafe: *vector.pointer[index]
+  else:
+    NOT_FOUND
+
+func set(vector: Vec, index: nat64, value: Element) -> bool:
+  if index < vector.length:
+    unsafe: vector.pointer[index] *= value
+
+    true
+  else:
+    false
+
+func tests() -> unit:
+  const CAPACITY: nat64 = 3::nat64
+  let vector = alloc(CAPACITY)
+
+  discard set(vector, 0::nat64, 123)
+  discard get(vector, 0::nat64)

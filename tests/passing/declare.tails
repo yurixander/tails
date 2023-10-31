@@ -1,0 +1,14 @@
+func first(a: bool) -> bool:
+  a
+
+func second(a: int) -> int:
+  let b = 1
+
+  -- let c = unsafe:
+  --   let d = b
+
+  a + a
+
+func tests() -> unit:
+  discard first(true)
+  discard second(1)

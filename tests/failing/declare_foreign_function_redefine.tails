@@ -1,0 +1,6 @@
+foreign:
+  func printf(fmt: str, ...)
+  func printf(fmt: str, ...)
+
+func tests() -> unit:
+  pass

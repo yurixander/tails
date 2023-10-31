@@ -1,0 +1,31 @@
+func a<T>(obj: {x: T}) -> unit:
+  pass
+
+func b<A, B>(obj: {x: A, y: B}) -> unit:
+  pass
+
+func c<A, B, C>(obj: {x: A, y: B, z: C}) -> unit:
+  pass
+
+func d<A, B, C>(obj: {x: A, y: B, z: C}) -> C:
+  obj.z
+
+func tests() -> unit:
+  -- a
+  a::<int>({x: 123})
+  a::<str>({x: "test"})
+  a::<*int>({x: null})
+
+  -- b
+  b::<int, str>({x: 123, y: "test"})
+  b::<int, *str>({x: 123, y: null})
+  b::<*int, unit>({x: null, y: pass})
+
+  -- c
+  c::<int, str, unit>({x: 123, y: "test", z: pass})
+  c::<*int, *str, *unit>({x: null, y: null, z: null})
+
+  -- d
+  discard d::<int, str, int>({x: 123, y: "test", z: 456})
+  discard d::<int, str, *int>({x: 123, y: "test", z: null})
+  discard d::<real, *str, *int>({x: 3.14, y: null, z: null})

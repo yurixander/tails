@@ -1,0 +1,11 @@
+func unbox<T>(x: T) -> unit:
+  pass
+
+func tests() -> unit:
+  let a = 1
+  let b = 2
+
+  unbox::<{a: int}>({a})
+  unbox::<{a: {a: int}}>({a: {a}})
+  unbox::<{a: {a: {a: int}}}>({a: {a: {a}}})
+  unbox::<{a: {a: {b: int}}}>({a: {a: {b}}})

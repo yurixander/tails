@@ -1,0 +1,17 @@
+func a() -> () -> int:
+  || 123
+
+func b() -> (int) -> int:
+  |x: int| x
+
+func c(x: int) -> () -> int:
+  |@x| x
+
+func d(x: int) -> (int) -> int:
+  |@x, y: int| x + y
+
+func tests() -> unit:
+  discard a()()
+  discard b()(123)
+  discard c(123)()
+  discard d(123)(456)

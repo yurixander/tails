@@ -1,0 +1,8 @@
+func tests() -> unit:
+  -- inline
+  (|| pass)();
+  (|x: int| pass)(123);
+  (|x: int, y: real| pass)(123, 3.14);
+
+  -- binding
+  let a: int = (|x: int| x)(123)

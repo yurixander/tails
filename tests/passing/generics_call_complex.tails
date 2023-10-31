@@ -1,0 +1,21 @@
+-- Parameter is given as a complex generic.
+-- func a<A>(x: *A) -> unit:
+--   pass
+
+-- Return type is given as a complex generic.
+func b<B>() -> *B:
+  null
+
+-- Infer return type from the parameters (simple generic).
+func c<C>(x: C) -> C:
+  x
+
+-- Infer return type from the parameters (complex generic).
+func d<D>(x: *D) -> *D:
+  x
+
+func tests() -> unit:
+  -- a::<int>(null) -- BUG: Null currently requires type hint, otherwise its generated type variable won't be resolved! This is because currently, during unification they aren't constrained against generic hints, because that process is handled by instantiation step. They're simply ignored! But wouldn't this produce an unresolved type variable diagnostic? It currently doesn't!
+  discard b::<int>()
+  discard c::<int>(123)
+  discard d::<int>(null::*int) -- BUG: Null currently requires type hint, otherwise its generated type variable won't be resolved! This is because currently, during unification they aren't constrained against generic hints, because that process is handled by instantiation step. They're simply ignored! But wouldn't this produce an unresolved type variable diagnostic? It currently doesn't!

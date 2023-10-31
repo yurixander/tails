@@ -1,0 +1,4 @@
+type A<T> = A<T>
+
+func tests() -> unit:
+  pass

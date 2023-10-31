@@ -1,0 +1,2 @@
+func tests() -> unit:
+  let ⭐ = 123

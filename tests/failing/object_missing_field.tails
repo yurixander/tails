@@ -1,0 +1,6 @@
+type A = {a: int, b: int}
+
+func tests() -> unit:
+  let a: A = {a: 1}
+
+  pass

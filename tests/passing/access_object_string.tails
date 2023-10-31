@@ -1,0 +1,9 @@
+func tests() -> unit:
+  let obj = {a: "test"}
+  let a = discard obj.a
+  let b = a
+  let c: str = obj.a
+
+  discard a
+  discard b
+  discard obj.a

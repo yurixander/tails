@@ -1,0 +1,9 @@
+func loop(i: nat) -> unit:
+  if i == 0::nat: pass
+  else: loop(i - 1::nat)
+
+func tests() -> unit:
+  discard loop(0::nat)
+  -- discard loop(1)
+  -- discard loop(10)
+  -- discard loop(100)

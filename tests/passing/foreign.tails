@@ -1,0 +1,21 @@
+-- TODO: Look on the definitions of these functions and those that use `void*` replace with `opaque`.
+foreign:
+  var stdout: opaque
+  var stdin: opaque
+  var stderr: opaque
+
+  func strtol(string: str, endptr: *str, base: int) -> int64
+  func puts(text: str) -> int
+  func printf(template: str, ...) -> int
+  func fgets(buffer: *str, count: int, stream: opaque) -> str
+  func getline(buffer: *str, n: *int64, stream: opaque) -> int
+  func free(pointer: opaque) -> unit
+
+func tests() -> unit:
+  discard unsafe: puts("test")
+  -- BUG: Code assumes index always defined for target, but this call is variadic!
+  discard unsafe: printf("hello %s", "world")
+  discard unsafe: getline(null::*str, null::*int64, stdin) -- TODO: Proper values.
+  discard unsafe: fgets(null, 5, stdin)
+  discard unsafe: free(stdout)
+  discard unsafe: strtol("test", null, 10)

@@ -1,0 +1,8 @@
+func loopRange(i: nat, end: nat) -> unit:
+  let next = 1::nat
+
+  if next >= end: pass
+  else: loopRange(next, end)
+
+func tests() -> unit:
+  discard loopRange(0::nat, 100::nat)

@@ -1,0 +1,18 @@
+func id(x: bool) -> unit:
+  pass
+
+func tests() -> unit:
+  -- simple
+  id(true and false)
+  id(true or false)
+  id(true nor false)
+  id(true nand false)
+  id(true xor false)
+
+  -- complex
+  id((true) xor (false))
+  id(not true and not false)
+  id((not true) nor (not false))
+  id((not true) nor (not false) nand true)
+  id((not true) and not false xor (true nor false and not (true)))
+  id(not not true and not not not not true or not false and not not true)
