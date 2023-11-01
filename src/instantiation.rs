@@ -39,7 +39,6 @@ impl<'a> InstantiationHelper<'a> {
     hints: &[types::Type],
     generics: &ast::Generics,
   ) -> diagnostic::Maybe<symbol_table::SubstitutionEnv> {
-    // CONSIDER: In the case that the hints are less than the parameters, pad it up with `Infer` types, but that shouldn't occur here (perhaps during inference)? Or might this be too 'implicit' (instead prefer the explicit usage of the wildcard/infer type?).
     if generics.parameters.len() != hints.len() {
       return Err(vec![
         diagnostic::Diagnostic::GenericParameterCountMismatch {

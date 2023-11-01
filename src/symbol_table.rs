@@ -14,7 +14,6 @@
 
 use crate::{ast, instantiation, types};
 
-// CONSIDER: Merging node & type ids, as they are used interchangeably in the same environment.
 /// A unique, exclusive identifier for declaration nodes.
 ///
 /// Used to exclusively uniquely identify and retrieve nodes stored on the

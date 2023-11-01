@@ -73,7 +73,7 @@ mod tests {
   }
 
   fn run_test(name: &str, folder_name: &str) -> diagnostic::Maybe<String> {
-    // CONSIDER: Actually compiling the output LLVM IR and running it, and expecting a `0` return code.
+    // CONSIDER: Actually compiling the output LLVM IR and running it, and expecting a `0` return code. Or, having a hybrid approach where running tess with a parameter actually compiles and executes all tests, which can be used once in a while by the developer.
 
     const FILENAME_EXTENSION: &str = "tails";
 
@@ -178,8 +178,6 @@ mod tests {
       )*
     };
   }
-
-  // CONSIDER: Adding a `integration` folder, which contains tests that are more complex and involve the usage of multiple language constructs in conjunction. Then, that folder's files would be automatically picked up by the test runner, and if Rust allows it, all the tests would be run, without comparison against expected output (ie. only perform LLVM module verification). If Rust doesn`t allow `dynamic` test creation, just add a macro similar to `define_passing_tests!` (would need to manually list the tests located in the `integration` directory).
 
   define_passing_tests!(
     access,
@@ -345,5 +343,3 @@ mod tests {
 // CONSIDER: Add embedded special-comment syntax checking feature to check produced LLVM IR, or certain properties of things. This will require that comments are treated as AST items, and also would help quite a lot if they are somehow 'attached' to things next to it; ability to obtain what comments are attached to.
 
 // TODO: Add new test module: "run-pass", should run the executable produced and complete without any panics. Also, "run-fail" tests. Furthermore, add tests around issues already encountered: specifically designed tests to ensure that fixed bugs do not reoccur, and finally, consider benchmark tests. Moreover, the comment syntax can also extend to runnable tests: by providing all the different inputs that the main function would receive and be executed on. Get creative; it's powerful.
-
-// CONSIDER: Static assert functionality, which can actually be used within tests to STATICALLY (without running) perform assertions on constants. Also, consider constexpr functions.

@@ -459,7 +459,6 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
       .as_basic_type_enum()
   }
 
-  // CONSIDER: Separating strip logic for raw type into a `lower_raw_type` function, which would also make more semantic sense and no need to manually overcome the `.0` step of RawType, which kind of defeats its semantic meaning purpose.
   /// Lower the given type into its corresponding LLVM basic type.
   ///
   /// No caching or memoization will be performed.
@@ -673,7 +672,6 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
     &mut self,
     return_value: Option<inkwell::values::BasicValueEnum<'llvm>>,
   ) {
-    // CONSIDER: Merging this with the function's terminator check, for void functions?
     // Only build a single return instruction per block.
     if self.get_current_block().get_terminator().is_some() {
       return;
@@ -715,7 +713,7 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
 
     temporary_universe_stack.push(artifact_id);
 
-    // CONSIDER: (poly-memoization) Move monomorphism memoization logic here? Or would that violate the separation of concerns principle?
+    // CONSIDER: (tag:poly-memoization) Move monomorphism memoization logic here? Or would that violate the separation of concerns principle?
     self.universe_stack = temporary_universe_stack;
 
     let llvm_value = self.visit_item(item);

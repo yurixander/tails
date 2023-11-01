@@ -123,8 +123,6 @@ impl<'a> TypeUnificationContext<'a> {
     partial_type_env: &symbol_table::TypeEnvironment,
     constraints: &inference::ConstraintSet,
   ) -> diagnostic::Maybe<symbol_table::TypeEnvironment> {
-    // CONSIDER: Accepting constraints as an input for this function, and that way separating concerns between constraint gathering and unification context.
-
     // SAFETY: What if we have conflicting constraints? Say, we have different calls with different types to the same function? Or if the parameters are constrained to be something, yet the arguments are constrained to be different?
     let constraints = constraints
       .iter()

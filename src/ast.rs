@@ -12,7 +12,6 @@ pub type Diagnostic = codespan_reporting::diagnostic::Diagnostic<usize>;
 pub struct Module {
   pub qualifier: symbol_table::Qualifier,
   pub global_items: Vec<Item>,
-  // CONSIDER: Package name, etc.? Qualifier?
 }
 
 #[derive(Debug)]
@@ -231,7 +230,6 @@ impl TryFrom<Expr> for symbol_table::RegistryItem {
 
 #[derive(Debug, Clone)]
 pub enum Item {
-  // CONSIDER: Having an 'Expr' variant, which would be used for expressions.
   ForeignFunction(std::rc::Rc<ForeignFunction>),
   ForeignVar(std::rc::Rc<ForeignStatic>),
   Function(std::rc::Rc<Function>),
@@ -554,13 +552,6 @@ pub struct ForeignStatic {
   pub registry_id: symbol_table::RegistryId,
   pub name: String,
   pub ty: types::Type,
-}
-
-#[derive(Debug)]
-pub struct Attribute {
-  pub name: String,
-  // CONSIDER: Using an `AttributeKind` enum, which would be populated during parsing. If nothing matches, then a syntactic error is emitted. This will limit attributes to being built-in only (for now at least), however.
-  pub values: Vec<LiteralKind>,
 }
 
 #[derive(Debug)]

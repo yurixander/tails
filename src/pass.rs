@@ -6,8 +6,6 @@ use crate::{
   visit::{self, Visitable, Visitor},
 };
 
-// CONSIDER: A verification pass, that will be used mostly for meta verification (debugging) purposes. This pass would check that all items have corresponding information registered on the symbol table, valid and expected types, etc. The checking phase could be mostly assertions. This can also be added from a driver to ensure more strict verification of the compiler's functionality.
-
 macro_rules! require_dependency {
   ($dependency:expr) => {
     match $dependency {

@@ -274,6 +274,7 @@ impl<'a> visit::Visitor for SemanticCheckContext<'a> {
     }
 
     // CONSIDER: To avoid problems with nested cases, save a buffer here, then restore? Maybe there's no need to restore the flag with its previous buffer in this specific case.
+    // TODO: Add a test case to see if a case with nested unsafe blocks would cause problems.
     self.in_unsafe_scope = true;
   }
 

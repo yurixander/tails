@@ -8,7 +8,6 @@ macro_rules! define_visit_fn {
   };
 }
 
-// CONSIDER: Simplifying it to just `get_universe_stack(&mut self) -> &mut resolution::UniverseStack`, and working with the mutable reference.
 pub(crate) trait ArtifactVisitor {
   fn get_universe_stack(&self) -> &resolution::UniverseStack;
 
@@ -59,8 +58,6 @@ pub(crate) fn traverse_polymorphic_item(
   artifact_visitor.set_universe_stack(previous_universe_stack);
 }
 
-// CONSIDER: Instead of having a visitor trait, simplify the process by using the traverse method, and a dispatcher via macros.
-// CONSIDER: Creating a `Pass` trait that may run on functions or modules, and dispatch corresponding handling of nodes instead of having a fully-fledged visitor. This would be useful if something like a pass manager were to be introduced, without the need to actually try to standardize everything under a single visitor trait.
 // CONSIDER: Having the type parameter be an associated type instead.
 pub trait Visitor<T = ()> {
   fn default_value(&mut self) -> T;
@@ -158,7 +155,6 @@ pub trait Visitor<T = ()> {
 }
 
 // CONSIDER: Extending with consideration for the `enter_item` and `exit_item` functions.
-// CONSIDER: Separating `traverse` and `accept` into multiple traits.
 pub trait Visitable {
   /// Visit the item itself only, but not its children.
   fn accept<T>(&self, visitor: &mut dyn Visitor<T>) -> T;
@@ -177,8 +173,6 @@ pub trait Visitable {
 
 #[inline]
 fn traverse_many<T>(items: &[impl Visitable], visitor: &mut dyn Visitor<T>) {
-  // CONSIDER: Accepting &[Visitable].
-
   for item in items {
     item.traverse(visitor);
   }

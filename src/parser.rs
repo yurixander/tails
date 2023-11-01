@@ -322,9 +322,6 @@ impl Parser {
   }
 
   fn parse_path(&mut self, symbol_kind: symbol_table::SymbolKind) -> diagnostic::Maybe<ast::Path> {
-    // CONSIDER: Changing this to arbitrary length/depth? Then a special case for local lookups on the lookup functions? This is because we may encounter cases of nested symbols, because of type aliases?
-    // TODO: Refactor and/or cleanup.
-
     let first_segment = self.parse_name()?;
 
     let second_segment = if self.is_path_segment() {
@@ -408,7 +405,7 @@ impl Parser {
     Ok(statement)
   }
 
-  /// %indent (%statement)+ %dedent end?
+  /// %indent (%statement)+ %dedent
   fn parse_block(&mut self) -> diagnostic::Maybe<Block> {
     // CONSIDER: Instead of implicitly returning the last statement, have an optional keyword at the last statement be 'return' to indicate that a value was indeed returned. To avoid problems when there is a single statement, simply consider having a flag on whether the statement is returned or not, then consider this on type-sensitive operations during lowering or anywhere that the return value is used. There is a problem with this approach: all blocks would need to "return" their values, even those inside if-expressions! This would be too much. Perhaps special case function bodies? For example, a parameter could be passed to the "parse_block" parsing function (this), so that it knows when it's parsing a function block. This could be a good idea. Consider simply accepting a parameter here to indicate whether this block must use the return parameter to yield (ie. it is a function body).
 
@@ -777,8 +774,6 @@ impl Parser {
 
   /// func %name %signature
   fn parse_foreign_function(&mut self) -> diagnostic::Maybe<ast::ForeignFunction> {
-    // CONSIDER: Support for visibility.
-
     self.skip_one(&lexer::TokenKind::Func)?;
 
     let name = self.parse_name()?;
@@ -986,8 +981,6 @@ impl Parser {
 
   // unsafe ':' %expr
   fn parse_unsafe(&mut self) -> diagnostic::Maybe<ast::Unsafe> {
-    // CONSIDER: Why not merge this with the normal block, and just have it be a flag?
-
     self.skip_many(&[lexer::TokenKind::Unsafe, lexer::TokenKind::Colon])?;
 
     Ok(ast::Unsafe(self.parse_expr()?))
