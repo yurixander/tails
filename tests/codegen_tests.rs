@@ -280,6 +280,8 @@ mod tests {
     tuple_typed,
     tuple_nested,
     tuple_single,
+    tuple_indexing_simple,
+    tuple_indexing_nested,
     type_infer_binding,
     type_infer_parameter,
     type_infer_object_access,

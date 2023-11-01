@@ -350,6 +350,9 @@ pub(crate) trait Infer<'a> {
 impl Infer<'_> for ast::Expr {
   fn infer(&self, parent: &InferenceContext<'_>) -> InferenceResult {
     match self {
+      ast::Expr::PointerAssignment(pointer_assignment) => {
+        parent.transient(pointer_assignment.as_ref())
+      }
       ast::Expr::Range(range) => parent.transient(range.as_ref()),
       ast::Expr::BinaryOp(binary_op) => parent.transient(binary_op.as_ref()),
       ast::Expr::CallSite(call_site) => parent.transient(call_site.as_ref()),
@@ -360,15 +363,12 @@ impl Infer<'_> for ast::Expr {
       ast::Expr::Unsafe(unsafe_) => parent.transient(unsafe_.as_ref()),
       ast::Expr::ObjectAccess(object_access) => parent.transient(object_access.as_ref()),
       ast::Expr::Tuple(tuple) => parent.transient(tuple.as_ref()),
-      ast::Expr::TupleAccess(tuple_access) => parent.transient(tuple_access.as_ref()),
+      ast::Expr::TupleIndexing(tuple_indexing) => parent.transient(tuple_indexing.as_ref()),
       ast::Expr::Reference(reference) => parent.transient(reference.as_ref()),
       ast::Expr::Sizeof(sizeof) => parent.transient(sizeof.as_ref()),
       ast::Expr::Match(match_) => parent.transient(match_.as_ref()),
       ast::Expr::Group(group) => parent.transient(group.as_ref()),
       ast::Expr::Discard(discard) => parent.transient(discard.as_ref()),
-      ast::Expr::PointerAssignment(pointer_assignment) => {
-        parent.transient(pointer_assignment.as_ref())
-      }
       ast::Expr::PointerIndexing(pointer_indexing) => parent.transient(pointer_indexing.as_ref()),
       ast::Expr::Pass(..) => parent.inherit(None).finalize(types::Type::Unit),
       ast::Expr::If(if_) => parent.transient(if_.as_ref()),
@@ -582,12 +582,13 @@ impl Infer<'_> for ast::Discard {
   }
 }
 
-impl Infer<'_> for ast::TupleAccess {
+impl Infer<'_> for ast::TupleIndex {
   fn infer(&self, parent: &InferenceContext<'_>) -> InferenceResult {
     let mut context = parent.inherit(None);
     let tuple_type = context.create_type_variable("tuple.access");
     let element_type = context.create_type_variable("tuple.access.element");
 
+    // BUG: (test:tuple_indexing_simple) This should be panicking with a `not yet implemented` message, since the unification's handling of `TupleElementOf` constraints is not yet implemented, but it's not panicking. Instead, unsolved type variable diagnostics are produced.
     context.add_other_constraint(Constraint::TupleElementOf {
       tuple_type: tuple_type.clone(),
       element_type: element_type.clone(),
@@ -596,10 +597,10 @@ impl Infer<'_> for ast::TupleAccess {
 
     context
       .type_env
-      .insert(self.accessed_tuple_type_id, tuple_type.clone());
+      .insert(self.indexed_tuple_type_id, tuple_type.clone());
 
     context.type_env.insert(self.type_id, element_type.clone());
-    context.constrain(&self.accessed_tuple, tuple_type);
+    context.constrain(&self.indexed_tuple, tuple_type);
 
     context.finalize(element_type)
   }

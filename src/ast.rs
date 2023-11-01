@@ -139,7 +139,7 @@ pub enum Expr {
   Cast(std::rc::Rc<Cast>),
   Match(std::rc::Rc<Match>),
   Tuple(std::rc::Rc<Tuple>),
-  TupleAccess(std::rc::Rc<TupleAccess>),
+  TupleIndexing(std::rc::Rc<TupleIndex>),
   Try(std::rc::Rc<Try>),
   Resume(std::rc::Rc<Resume>),
   Discard(std::rc::Rc<Discard>),
@@ -188,7 +188,7 @@ impl Expr {
       Expr::Sizeof(sizeof_) => Some(&sizeof_.type_id),
       Expr::Cast(cast) => Some(&cast.type_id),
       Expr::Tuple(tuple) => Some(&tuple.type_id),
-      Expr::TupleAccess(tuple_access) => Some(&tuple_access.type_id),
+      Expr::TupleIndexing(tuple_indexing) => Some(&tuple_indexing.type_id),
       Expr::Literal(literal) => Some(&literal.type_id),
       Expr::Closure(closure) => Some(&closure.type_id),
       Expr::Reference(reference) => Some(&reference.type_id),
@@ -333,15 +333,15 @@ pub struct Constant {
 pub struct Discard(pub Expr);
 
 #[derive(Debug)]
-pub struct TupleAccess {
+pub struct TupleIndex {
   pub type_id: symbol_table::TypeId,
   /// The index of the accessed tuple element.
   ///
   /// Note that tuple indexing is type-checked at compile-time,
   /// therefore indexing is guaranteed to be valid.
   pub index: u32,
-  pub accessed_tuple: Expr,
-  pub accessed_tuple_type_id: symbol_table::TypeId,
+  pub indexed_tuple: Expr,
+  pub indexed_tuple_type_id: symbol_table::TypeId,
 }
 
 #[derive(Debug)]
@@ -636,8 +636,6 @@ impl Callable {
       Callable::ForeignFunction(foreign_function) => Some(foreign_function.name.to_owned()),
       Callable::Function(function) => Some(function.name.to_owned()),
       Callable::Closure(closure) => Some(format!("closure#{}", closure.registry_id.0)),
-      // REVIEW: Anything else has a name?
-      _ => None,
     }
   }
 

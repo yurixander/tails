@@ -249,7 +249,7 @@ impl Pass for DeclarePass {
       "the same module should not be declared twice"
     );
 
-    let mut declare_ctx = declare::DeclarationContext::new(module.qualifier.clone());
+    let mut declare_ctx = declare::DeclarationContext::default();
 
     for global_item in &module.global_items {
       global_item.traverse(&mut declare_ctx);

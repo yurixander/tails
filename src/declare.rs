@@ -3,54 +3,17 @@ use crate::{ast, auxiliary, diagnostic, instantiation, lowering, symbol_table, t
 pub(crate) type DeclarationMap =
   std::collections::HashMap<symbol_table::Qualifier, symbol_table::Scope>;
 
-pub(crate) fn merge_declarations(
-  a: DeclarationMap,
-  b: DeclarationMap,
-) -> diagnostic::Maybe<DeclarationMap> {
-  let mut result = a;
-  let mut diagnostic_helper = diagnostic::DiagnosticsHelper::default();
-
-  for (qualifier, scope) in b {
-    if let Some(existing_scope) = result.get_mut(&qualifier) {
-      for (symbol_path, (registry_id, symbol)) in scope {
-        if existing_scope.contains_key(&symbol_path) {
-          diagnostic_helper.add_one(diagnostic::Diagnostic::Redeclaration(symbol_path));
-
-          continue;
-        }
-
-        existing_scope.insert(symbol_path, (registry_id, symbol));
-      }
-    } else {
-      result.insert(qualifier, scope);
-    }
-  }
-
-  diagnostic_helper.try_return_value(result)
-}
-
+#[derive(Default)]
 pub struct DeclarationContext {
   pub(crate) module_scope: symbol_table::Scope,
   pub(crate) symbol_table: symbol_table::SymbolTable,
   pub(crate) diagnostics: Vec<diagnostic::Diagnostic>,
-  module_qualifier: symbol_table::Qualifier,
   instance_base_name_buffer: Option<String>,
   current_function_id: Option<symbol_table::RegistryId>,
 }
 
 // CONSIDER: A global, default scope. This would be great to declare the prelude as well.
 impl<'a> DeclarationContext {
-  pub fn new(module_qualifier: symbol_table::Qualifier) -> Self {
-    Self {
-      symbol_table: symbol_table::SymbolTable::default(),
-      module_qualifier,
-      module_scope: symbol_table::Scope::default(),
-      diagnostics: Vec::new(),
-      instance_base_name_buffer: None,
-      current_function_id: None,
-    }
-  }
-
   fn try_auto_declare_global(&mut self, item: &ast::Item) {
     // Certain items require special handling of declaration procedure.
     if let ast::Item::Function(function) = item {
@@ -295,7 +258,7 @@ mod tests {
 
   #[test]
   fn scope_contains() {
-    let mut declare_ctx = DeclarationContext::new(symbol_table::tests::mock_qualifier());
+    let mut declare_ctx = DeclarationContext::default();
     let symbol = symbol_table::tests::mock_symbol();
 
     assert!(!declare_ctx.is_declared(&symbol.path));
@@ -307,7 +270,7 @@ mod tests {
   fn declare_global() {
     let id = symbol_table::RegistryId(0);
     let symbol = symbol_table::tests::mock_symbol();
-    let mut declare_ctx = DeclarationContext::new(symbol_table::tests::mock_qualifier());
+    let mut declare_ctx = DeclarationContext::default();
 
     assert!(declare_ctx.try_declare(symbol.clone(), id));
     assert!(declare_ctx.diagnostics.is_empty());

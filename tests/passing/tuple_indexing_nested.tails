@@ -1,0 +1,4 @@
+func tests() -> unit:
+  let a = ((1,),).0.0 -- BUG: This is getting lexed as a decimal number.
+  let b = ((3.14,).0.0
+  let c = ((1,), (2,)).1.0

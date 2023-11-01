@@ -146,7 +146,7 @@ pub trait Visitor<T = ()> {
   define_visit_fn!(visit_union, ast::Union);
   define_visit_fn!(visit_union_instance, ast::UnionInstance);
   define_visit_fn!(visit_union_variant, ast::UnionVariant);
-  define_visit_fn!(visit_tuple_access, ast::TupleAccess);
+  define_visit_fn!(visit_tuple_indexing, ast::TupleIndex);
   define_visit_fn!(visit_effect, ast::Effect);
   define_visit_fn!(visit_try, ast::Try);
   define_visit_fn!(visit_resume, ast::Resume);
@@ -257,7 +257,7 @@ impl Visitable for ast::Expr {
       ast::Expr::PointerAssignment(pointer_assignment) => pointer_assignment.accept(visitor),
       ast::Expr::Tuple(tuple) => tuple.accept(visitor),
       ast::Expr::ObjectAccess(object_access) => object_access.accept(visitor),
-      ast::Expr::TupleAccess(tuple_access) => tuple_access.accept(visitor),
+      ast::Expr::TupleIndexing(tuple_indexing) => tuple_indexing.accept(visitor),
       ast::Expr::Pass(nothing) => nothing.accept(visitor),
       ast::Expr::Statement(statement) => statement.accept(visitor),
       ast::Expr::UnionInstance(union_instance) => union_instance.accept(visitor),
@@ -274,6 +274,9 @@ impl Visitable for ast::Expr {
 
   fn traverse_children<T>(&self, visitor: &mut dyn Visitor<T>) {
     match self {
+      ast::Expr::PointerAssignment(pointer_assignment) => {
+        pointer_assignment.traverse_children(visitor)
+      }
       ast::Expr::BinaryOp(binary_op) => binary_op.traverse_children(visitor),
       ast::Expr::UnaryOp(unary_op) => unary_op.traverse_children(visitor),
       ast::Expr::Literal(literal) => literal.traverse_children(visitor),
@@ -293,12 +296,9 @@ impl Visitable for ast::Expr {
       ast::Expr::Range(range) => range.traverse_children(visitor),
       ast::Expr::Sizeof(size_of) => size_of.traverse_children(visitor),
       ast::Expr::PointerIndexing(pointer_indexing) => pointer_indexing.traverse_children(visitor),
-      ast::Expr::PointerAssignment(pointer_assignment) => {
-        pointer_assignment.traverse_children(visitor)
-      }
       ast::Expr::Tuple(tuple) => tuple.traverse_children(visitor),
       ast::Expr::ObjectAccess(object_access) => object_access.traverse_children(visitor),
-      ast::Expr::TupleAccess(tuple_access) => tuple_access.traverse_children(visitor),
+      ast::Expr::TupleIndexing(tuple_indexing) => tuple_indexing.traverse_children(visitor),
       ast::Expr::Pass(nothing) => nothing.traverse_children(visitor),
       ast::Expr::Statement(statement) => statement.traverse_children(visitor),
       ast::Expr::UnionInstance(union_instance) => union_instance.traverse_children(visitor),
@@ -436,9 +436,9 @@ impl Visitable for ast::Resume {
   }
 }
 
-impl Visitable for ast::TupleAccess {
+impl Visitable for ast::TupleIndex {
   fn accept<T>(&self, visitor: &mut dyn Visitor<T>) -> T {
-    visitor.visit_tuple_access(self)
+    visitor.visit_tuple_indexing(self)
   }
 }
 

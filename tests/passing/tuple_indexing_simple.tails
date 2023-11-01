@@ -1,0 +1,7 @@
+func tests() -> unit:
+  let a = (0,).0
+  let b = (3.14,).0
+  let c = ("test",).0
+  let d = (1,2).0
+  let e = (1,2).1
+  let f = (1,2,3).2 -- BUG: It seems there's a problem with the binding statement's type being considered when it's the last statement, and affecting the return type?

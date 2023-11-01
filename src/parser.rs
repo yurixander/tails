@@ -1171,7 +1171,7 @@ impl Parser {
         lexer::TokenKind::ColonDouble => ast::Expr::Cast(std::rc::Rc::new(self.parse_cast(expr)?)),
         lexer::TokenKind::As => ast::Expr::Cast(std::rc::Rc::new(self.parse_cast(expr)?)),
         lexer::TokenKind::Dot if matches!(self.peek(), Some(lexer::TokenKind::Number(..))) => {
-          ast::Expr::TupleAccess(std::rc::Rc::new(self.parse_tuple_access(expr)?))
+          ast::Expr::TupleIndexing(std::rc::Rc::new(self.parse_tuple_indexing(expr)?))
         }
         lexer::TokenKind::Dot if self.peek_is(&lexer::TokenKind::As) => {
           ast::Expr::Cast(std::rc::Rc::new(self.parse_cast(expr)?))
@@ -1283,10 +1283,10 @@ impl Parser {
     Ok(ast::Discard(value))
   }
 
-  fn parse_tuple_access(
+  fn parse_tuple_indexing(
     &mut self,
-    accessed_tuple: ast::Expr,
-  ) -> diagnostic::Maybe<ast::TupleAccess> {
+    indexed_tuple: ast::Expr,
+  ) -> diagnostic::Maybe<ast::TupleIndex> {
     self.skip_one(&lexer::TokenKind::Dot)?;
 
     // REVIEW: What about a dynamic index? Should there be support for that? But then we'd have to also deal with out-of-bounds possibility for this. Need a system to handle out-of-bounds indexing.
@@ -1296,10 +1296,10 @@ impl Parser {
       _ => return Err(self.expected("number")),
     };
 
-    Ok(ast::TupleAccess {
+    Ok(ast::TupleIndex {
       index,
-      accessed_tuple,
-      accessed_tuple_type_id: self.id_generator.next_type_id(),
+      indexed_tuple,
+      indexed_tuple_type_id: self.id_generator.next_type_id(),
       type_id: self.id_generator.next_type_id(),
     })
   }
@@ -2278,12 +2278,20 @@ mod tests {
   fn expected() {
     let parser = create_parser(&[]);
     const EXPECTED_TOKEN: &str = "test";
+    let result = parser.expected(EXPECTED_TOKEN);
 
-    // FIXME: Fix test.
-    // assert_eq!(
-    //   parser.expected(EXPECTED_TOKEN),
-    //   diagnostic::Diagnostic::ExpectedButGotToken(EXPECTED_TOKEN.to_string(), "EOF".to_string())
-    // );
+    assert_eq!(result.len(), 1);
+
+    let only_diagnostic = if let Some(first) = result.first() {
+      first
+    } else {
+      panic!("Expected at least one diagnostic.");
+    };
+
+    assert!(matches!(
+      only_diagnostic,
+      diagnostic::Diagnostic::ExpectedButGotToken(..)
+    ));
   }
 
   #[test]

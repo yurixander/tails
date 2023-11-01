@@ -166,20 +166,23 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     Some(self.access_if_mode_applies(llvm_union_type, llvm_base_alloca, "union.instance"))
   }
 
-  fn visit_tuple_access(
+  fn visit_tuple_indexing(
     &mut self,
-    tuple_access: &ast::TupleAccess,
+    tuple_indexing: &ast::TupleIndex,
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
     // Lower types early on to avoid creating LLVM instructions if
     // the resulting value won't evaluate regardless.
-    let llvm_field_type = self.lower_type_by_id(&tuple_access.type_id)?;
+    let llvm_field_type = self.lower_type_by_id(&tuple_indexing.type_id)?;
 
-    // TODO: Assert `tuple_access.accessed_tuple` is an LLVM struct type.
+    // TODO: Assert `tuple_indexing.indexed_tuple` is an LLVM struct type.
 
     let llvm_struct_ptr = self
       // Do not access the tuple, since the following code expects a pointer
       // to a struct alloca, and there are no constant structs.
-      .lower_with_access_mode(&tuple_access.accessed_tuple, lowering_ctx::AccessMode::None)
+      .lower_with_access_mode(
+        &tuple_indexing.indexed_tuple,
+        lowering_ctx::AccessMode::None,
+      )
       .expect(lowering_ctx::BUG_LLVM_VALUE)
       .into_pointer_value();
 
@@ -188,7 +191,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       .build_struct_gep(
         llvm_field_type,
         llvm_struct_ptr,
-        tuple_access.index,
+        tuple_indexing.index,
         "tuple.field.gep",
       )
       // REVISE: Use `expect` instead. If the reason is repeated among other similar instances, create a clause or reason global constant.

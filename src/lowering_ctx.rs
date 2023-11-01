@@ -1208,24 +1208,4 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
 
     llvm_capture_env
   }
-
-  /// Append an object type to the parameter type list representing the closure
-  /// captures environment struct.
-  ///
-  /// It is appended to the end instead of inserted into the beginning to avoid
-  /// displacement of LLVM parameters from occurring, which may lead to logic bugs.
-  pub(crate) fn build_closure_captures_signature_type(
-    &self,
-    initial_signature_type: types::SignatureType,
-    captures: &[ast::ClosureCapture],
-  ) -> types::SignatureType {
-    let mut modified_signature = initial_signature_type.clone();
-
-    // SAFETY: These modifications are prone to logic bugs. Even tho it is avoided by pushing onto the end instead of inserting it as the first parameter, future assumptions must have some sort of heads up when dealing with LLVM parameters.
-    modified_signature
-      .parameter_types
-      .push(self.create_captures_env_type(captures).into_pointer_type());
-
-    modified_signature
-  }
 }

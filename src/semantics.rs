@@ -376,22 +376,22 @@ impl<'a> visit::Visitor for SemanticCheckContext<'a> {
     }
   }
 
-  fn visit_tuple_access(&mut self, tuple_access: &ast::TupleAccess) {
+  fn visit_tuple_indexing(&mut self, tuple_indexing: &ast::TupleIndex) {
     let tuple_general_type = self
       .resolution_helper
       .resolve_by_id(
-        &tuple_access.accessed_tuple_type_id,
+        &tuple_indexing.indexed_tuple_type_id,
         self.universe_stack.clone(),
       )
       .expect(auxiliary::BUG_MISSING_TYPE);
 
     let tuple_type = force_extract!(tuple_general_type.as_ref(), types::Type::Tuple);
 
-    if tuple_access.index as usize >= tuple_type.0.len() {
+    if tuple_indexing.index as usize >= tuple_type.0.len() {
       self
         .diagnostics
         .push(diagnostic::Diagnostic::TupleAccessOutOfBounds {
-          index: tuple_access.index as usize,
+          index: tuple_indexing.index as usize,
           tuple_length: tuple_type.0.len(),
         });
     }
