@@ -47,6 +47,7 @@ pub enum Diagnostic {
   InvalidEscapeSequence(char),
   CannotUseOutsideUnsafe,
   Redefinition(String),
+  Redeclaration(symbol_table::SymbolPath),
   SymbolCannotBeShadowed(String),
   QualifiedSymbolNotFound(String),
   MultipleEntryPoints,
@@ -153,19 +154,11 @@ impl DiagnosticsHelper {
     }
   }
 
-  pub fn try_return_pass_result(self, result_value: pass::PassResultValue) -> pass::PassResult {
+  pub fn into_pass_result(self) -> pass::PassResult {
     if self.contains_errors() {
-      pass::PassResult::Failed(self.diagnostics)
+      pass::PassResult::Err(self.diagnostics)
     } else {
-      pass::PassResult::OkWithValue(result_value, self.diagnostics)
-    }
-  }
-
-  pub fn into_analysis_pass_result(self) -> pass::PassResult {
-    if self.contains_errors() {
-      pass::PassResult::Failed(self.diagnostics)
-    } else {
-      pass::PassResult::Success(self.diagnostics)
+      pass::PassResult::Ok(self.diagnostics)
     }
   }
 }

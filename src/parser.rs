@@ -93,7 +93,10 @@ impl Parser {
     }
   }
 
-  pub fn parse_module(&mut self, name: String) -> diagnostic::Maybe<ast::Module> {
+  pub fn parse_module(
+    &mut self,
+    qualifier: symbol_table::Qualifier,
+  ) -> diagnostic::Maybe<ast::Module> {
     let mut items = Vec::new();
 
     while !self.is_at_last_token_or_past() {
@@ -101,7 +104,7 @@ impl Parser {
     }
 
     Ok(ast::Module {
-      name,
+      qualifier,
       global_items: items,
     })
   }

@@ -10,7 +10,7 @@ use crate::{
 
 macro_rules! require_dependency {
   ($dependency:expr) => {
-    match &$dependency {
+    match $dependency {
       Some(value) => value,
       None => return PassResult::UnmetDependencies,
     }
@@ -21,30 +21,22 @@ macro_rules! require_maybe_many {
   ($result:expr) => {
     match $result {
       Ok(value) => value,
-      Err(diagnostics) => return PassResult::Failed(diagnostics),
+      Err(diagnostics) => return PassResult::Err(diagnostics),
     }
   };
 }
 
-pub enum PassResultValue {
-  Resolution {
-    symbol_table: symbol_table::SymbolTable,
-    call_graph: auxiliary::CallGraph,
-  },
+pub enum PassResult {
+  Ok(Vec<diagnostic::Diagnostic>),
+  Err(Vec<diagnostic::Diagnostic>),
+  UnmetDependencies,
+  LlvmIrOutput(String),
   TypeInference {
     type_env: symbol_table::TypeEnvironment,
     universes: instantiation::TypeSchemes,
     next_id_count: usize,
     reverse_universe_tracker: instantiation::ReverseUniverseTracker,
   },
-  BackendOutput(String),
-}
-
-pub enum PassResult {
-  Success(Vec<diagnostic::Diagnostic>),
-  Failed(Vec<diagnostic::Diagnostic>),
-  OkWithValue(PassResultValue, Vec<diagnostic::Diagnostic>),
-  UnmetDependencies,
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy, Debug)]
@@ -87,7 +79,15 @@ pub struct PassInfo {
 pub trait Pass {
   fn get_info(&self) -> PassInfo;
 
-  fn run<'a>(&mut self, _module: &ast::Module, _context: &ExecutionContext<'a>) -> PassResult;
+  fn run_on_module<'a>(
+    &mut self,
+    _module: &ast::Module,
+    _context: &mut ExecutionContext<'a>,
+  ) -> PassResult;
+
+  fn run_on_context<'a>(&mut self, _context: &ExecutionContext<'a>) -> PassResult {
+    PassResult::Ok(Vec::default())
+  }
 }
 
 #[derive(Default)]
@@ -101,29 +101,30 @@ impl Pass for SemanticCheckPass {
     }
   }
 
-  fn run<'a>(&mut self, _module: &ast::Module, context: &ExecutionContext<'a>) -> PassResult {
-    let symbol_table = require_dependency!(context.symbol_table);
-    let type_env = require_dependency!(context.type_env);
-    let universes = require_dependency!(context.universes);
+  fn run_on_module<'a>(
+    &mut self,
+    module: &ast::Module,
+    context: &mut ExecutionContext<'a>,
+  ) -> PassResult {
+    let symbol_table = require_dependency!(&context.symbol_table);
+    let type_env = require_dependency!(&context.type_env);
+    let universes = require_dependency!(&context.universes);
     let resolution_helper = resolution::ResolutionHelper::new(universes, symbol_table, type_env);
-    let reverse_universe_tracker = require_dependency!(context.reverse_universe_tracker);
+    let reverse_universe_tracker = require_dependency!(&context.reverse_universe_tracker);
 
     let mut semantic_check_ctx =
       semantics::SemanticCheckContext::new(&symbol_table, &resolution_helper);
 
     // REVISE: Use the provided unit node instead. This will also get rid of the dependence on the module map from the context's fields.
-    for module in context.package.values() {
-      for global_item in &module.global_items {
-        visit::traverse_possibly_polymorphic_global_item(
-          global_item,
-          reverse_universe_tracker,
-          &mut semantic_check_ctx,
-        );
-      }
+    for global_item in &module.global_items {
+      visit::traverse_possibly_polymorphic_global_item(
+        global_item,
+        reverse_universe_tracker,
+        &mut semantic_check_ctx,
+      );
     }
 
-    diagnostic::DiagnosticsHelper::from(semantic_check_ctx.get_diagnostics())
-      .into_analysis_pass_result()
+    diagnostic::DiagnosticsHelper::from(semantic_check_ctx.get_diagnostics()).into_pass_result()
   }
 }
 
@@ -139,10 +140,14 @@ impl Pass for LoweringPass {
     }
   }
 
-  fn run<'a>(&mut self, module: &ast::Module, context: &ExecutionContext<'a>) -> PassResult {
-    let symbol_table = require_dependency!(context.symbol_table);
-    let type_env = require_dependency!(context.type_env);
-    let universes = require_dependency!(context.universes);
+  fn run_on_module<'a>(
+    &mut self,
+    module: &ast::Module,
+    context: &mut ExecutionContext<'a>,
+  ) -> PassResult {
+    let symbol_table = require_dependency!(&context.symbol_table);
+    let type_env = require_dependency!(&context.type_env);
+    let universes = require_dependency!(&context.universes);
     let resolution_helper = resolution::ResolutionHelper::new(universes, symbol_table, type_env);
     let llvm_context = inkwell::context::Context::create();
     let llvm_module = llvm_context.create_module(&self.module_qualifier.module_name);
@@ -170,7 +175,7 @@ impl Pass for LoweringPass {
     if let Some(entry_point) = &entry_point_opt {
       lowering_context.visit_item(entry_point);
     } else {
-      return PassResult::Failed(vec![diagnostic::Diagnostic::MissingEntryPoint]);
+      return PassResult::Err(vec![diagnostic::Diagnostic::MissingEntryPoint]);
     }
 
     let llvm_module_string = llvm_module.print_to_string().to_string();
@@ -186,10 +191,10 @@ impl Pass for LoweringPass {
       );
     }
 
-    PassResult::OkWithValue(
-      PassResultValue::BackendOutput(llvm_module_string),
-      Vec::default(),
-    )
+    // TODO: Must add diagnostics (could be warnings produced).
+    todo!();
+
+    PassResult::LlvmIrOutput(llvm_module_string)
   }
 }
 
@@ -204,11 +209,15 @@ impl Pass for LifetimeAnalysisPass {
     }
   }
 
-  fn run<'a>(&mut self, module: &ast::Module, context: &ExecutionContext<'a>) -> PassResult {
-    let symbol_table = require_dependency!(context.symbol_table);
-    let type_env = require_dependency!(context.type_env);
-    let reverse_universe_tracker = require_dependency!(context.reverse_universe_tracker);
-    let universes = require_dependency!(context.universes);
+  fn run_on_module<'a>(
+    &mut self,
+    module: &ast::Module,
+    context: &mut ExecutionContext<'a>,
+  ) -> PassResult {
+    let symbol_table = require_dependency!(&context.symbol_table);
+    let type_env = require_dependency!(&context.type_env);
+    let reverse_universe_tracker = require_dependency!(&context.reverse_universe_tracker);
+    let universes = require_dependency!(&context.universes);
     let resolution_helper = resolution::ResolutionHelper::new(universes, symbol_table, type_env);
 
     let mut lifetime_analysis_ctx =
@@ -224,15 +233,59 @@ impl Pass for LifetimeAnalysisPass {
       );
     }
 
-    diagnostic::DiagnosticsHelper::from(lifetime_analysis_ctx.diagnostics)
-      .into_analysis_pass_result()
+    diagnostic::DiagnosticsHelper::from(lifetime_analysis_ctx.diagnostics).into_pass_result()
   }
 }
 
 #[derive(Default)]
-pub struct ResolutionPass;
+pub struct DeclarePass;
 
-impl ResolutionPass {
+impl Pass for DeclarePass {
+  fn get_info(&self) -> PassInfo {
+    PassInfo {
+      id: PassId::Resolution,
+      kind: PassKind::Primary(0),
+    }
+  }
+
+  fn run_on_module<'a>(
+    &mut self,
+    module: &ast::Module,
+    context: &mut ExecutionContext<'a>,
+  ) -> PassResult {
+    assert!(
+      !context.declarations.contains_key(&module.qualifier),
+      "the same module should not be declared twice"
+    );
+
+    let mut declare_ctx = declare::DeclarationContext::new(module.qualifier.clone());
+
+    for global_item in &module.global_items {
+      global_item.traverse(&mut declare_ctx);
+    }
+
+    let diagnostic_helper = diagnostic::DiagnosticsHelper {
+      diagnostics: declare_ctx.diagnostics,
+    };
+
+    if diagnostic_helper.contains_errors() {
+      return PassResult::Err(diagnostic_helper.diagnostics);
+    }
+
+    context.symbol_table = Some(declare_ctx.symbol_table);
+
+    context
+      .declarations
+      .insert(module.qualifier.clone(), declare_ctx.module_scope);
+
+    PassResult::Ok(diagnostic_helper.diagnostics)
+  }
+}
+
+#[derive(Default)]
+pub struct LinkPass;
+
+impl LinkPass {
   fn create_call_graph(symbol_table: &symbol_table::SymbolTable) -> auxiliary::CallGraph {
     let mut call_graph = auxiliary::CallGraph::default();
 
@@ -278,69 +331,38 @@ impl ResolutionPass {
   }
 }
 
-impl Pass for ResolutionPass {
+impl Pass for LinkPass {
   fn get_info(&self) -> PassInfo {
     PassInfo {
-      id: PassId::Resolution,
-      kind: PassKind::Primary(0),
+      id: PassId::Instantiation,
+      kind: PassKind::Primary(1),
     }
   }
 
-  fn run<'a>(&mut self, _module: &ast::Module, context: &ExecutionContext<'a>) -> PassResult {
-    let first_key = match context.package.keys().next() {
-      Some(key) => key.to_owned(),
-      None => {
-        return PassResult::OkWithValue(
-          PassResultValue::Resolution {
-            symbol_table: symbol_table::SymbolTable::default(),
-            call_graph: auxiliary::CallGraph::default(),
-          },
-          Vec::default(),
-        )
-      }
-    };
+  fn run_on_module<'a>(
+    &mut self,
+    module: &ast::Module,
+    context: &mut ExecutionContext<'a>,
+  ) -> PassResult {
+    let mut diagnostic_helper = diagnostic::DiagnosticsHelper::default();
+    let symbol_table = require_dependency!(&mut context.symbol_table);
 
-    let mut declare_ctx = declare::DeclarationContext::new(first_key);
-
-    // REVIEW: Why not use the provided `Module` AST item?
-    for (qualifier, module) in context.package {
-      // REVIEW: Shouldn't the module be created before, on the Driver?
-      declare_ctx.create_and_set_module(qualifier.clone());
-
-      for item in &module.global_items {
-        item.traverse(&mut declare_ctx);
-      }
-    }
-
-    let mut diagnostics = diagnostic::DiagnosticsHelper {
-      diagnostics: declare_ctx.diagnostics,
-    };
-
-    if diagnostics.contains_errors() {
-      return PassResult::Failed(diagnostics.diagnostics);
-    }
-
-    let declarations = declare_ctx.declarations;
-    let mut symbol_table = declare_ctx.symbol_table;
-
-    for (qualifier, modules) in context.package {
-      let mut link_ctx = link::LinkContext::new(&declarations, qualifier.clone())
+    // FIXME: The link pass still runs on all modules instead of per-module.
+    for (qualifier, modules) in context.main_package {
+      let mut link_ctx = link::LinkContext::new(&context.declarations, qualifier.clone())
         .expect("module should have been created on the declaration step");
 
       for item in &modules.global_items {
         item.traverse(&mut link_ctx);
       }
 
-      diagnostics.add_many(link_ctx.diagnostics);
+      diagnostic_helper.add_many(link_ctx.diagnostics);
       symbol_table.links.extend(link_ctx.links);
     }
 
-    let call_graph = Self::create_call_graph(&symbol_table);
+    context.call_graph = Some(Self::create_call_graph(&symbol_table));
 
-    diagnostics.try_return_pass_result(PassResultValue::Resolution {
-      symbol_table,
-      call_graph,
-    })
+    diagnostic_helper.into_pass_result()
   }
 }
 
@@ -418,12 +440,16 @@ impl Pass for TypeInferencePass {
   fn get_info(&self) -> PassInfo {
     PassInfo {
       id: PassId::TypeInference,
-      kind: PassKind::Primary(1),
+      kind: PassKind::Primary(2),
     }
   }
 
-  fn run<'a>(&mut self, module: &ast::Module, context: &ExecutionContext<'a>) -> PassResult {
-    let symbol_table = require_dependency!(context.symbol_table);
+  fn run_on_module<'a>(
+    &mut self,
+    module: &ast::Module,
+    context: &mut ExecutionContext<'a>,
+  ) -> PassResult {
+    let symbol_table = require_dependency!(&context.symbol_table);
 
     let mut initial_inference_context =
       inference::InferenceContext::new(symbol_table, None, context.id_count);
@@ -446,7 +472,7 @@ impl Pass for TypeInferencePass {
     let diagnostics_helper = diagnostic::DiagnosticsHelper::from(instantiation_diagnostics);
 
     if diagnostics_helper.contains_errors() {
-      return diagnostics_helper.into_analysis_pass_result();
+      return diagnostics_helper.into_pass_result();
     }
 
     assert!(
@@ -467,24 +493,25 @@ impl Pass for TypeInferencePass {
 
     let reverse_universe_tracker = Self::create_reverse_universe_tracker(&symbol_table);
 
-    diagnostics_helper.try_return_pass_result(PassResultValue::TypeInference {
-      type_env,
-      next_id_count: inference_results.next_id_count,
-      universes,
-      reverse_universe_tracker,
-    })
+    assert!(!diagnostics_helper.contains_errors());
+    context.type_env = Some(type_env);
+    context.id_count = inference_results.next_id_count;
+    context.universes = Some(universes);
+    context.reverse_universe_tracker = Some(reverse_universe_tracker);
+
+    PassResult::Ok(diagnostics_helper.diagnostics)
   }
 }
 
 pub struct ExecutionContext<'a> {
-  pub backend_output: Option<String>,
   symbol_table: Option<symbol_table::SymbolTable>,
   call_graph: Option<auxiliary::CallGraph>,
   type_env: Option<symbol_table::TypeEnvironment>,
   universes: Option<instantiation::TypeSchemes>,
   reverse_universe_tracker: Option<instantiation::ReverseUniverseTracker>,
   id_count: usize,
-  package: &'a ast::Package,
+  main_package: &'a ast::Package,
+  declarations: declare::DeclarationMap,
 }
 
 struct PassEntry(pub Box<dyn Pass>);
@@ -528,60 +555,23 @@ impl Ord for PassEntry {
 
 pub struct RunResult {
   pub diagnostics: Vec<diagnostic::Diagnostic>,
-  pub backend_output: Option<String>,
+  pub results: PassResultsMap,
 }
 
-pub struct ExecutionOptions {
-  // REVIEW: Would there ever be a case where parallelization is not desired? Perhaps during debugging since using parallelization would make it have non-deterministic behavior? If so, document why here, using a note.
-  use_parallelization: bool,
-}
+pub type PassResultsMap = std::collections::HashMap<PassId, PassResult>;
 
-impl Default for ExecutionOptions {
-  fn default() -> Self {
-    Self {
-      use_parallelization: false,
-    }
-  }
-}
-
-// CONSIDER: Pass caching mechanism.
-// CONSIDER: Pass metrics and benchmarking instrumentation.
 pub struct PassManager<'a> {
   passes: std::collections::BinaryHeap<PassEntry>,
   passes_tally: std::collections::HashSet<PassId>,
-  package: &'a ast::Package,
+  main_package: &'a ast::Package,
 }
 
 impl<'a> PassManager<'a> {
-  fn apply_pass_result_value(value: PassResultValue, context: &mut ExecutionContext<'a>) {
-    match value {
-      PassResultValue::BackendOutput(output) => context.backend_output = Some(output),
-      PassResultValue::Resolution {
-        symbol_table,
-        call_graph,
-      } => {
-        context.symbol_table = Some(symbol_table);
-        context.call_graph = Some(call_graph);
-      }
-      PassResultValue::TypeInference {
-        type_env,
-        next_id_count,
-        universes,
-        reverse_universe_tracker,
-      } => {
-        context.universes = Some(universes);
-        context.type_env = Some(type_env);
-        context.id_count = next_id_count;
-        context.reverse_universe_tracker = Some(reverse_universe_tracker);
-      }
-    };
-  }
-
   pub fn new(package: &'a ast::Package) -> Self {
     Self {
       passes: std::collections::BinaryHeap::new(),
       passes_tally: std::collections::HashSet::new(),
-      package,
+      main_package: package,
     }
   }
 
@@ -609,7 +599,7 @@ impl<'a> PassManager<'a> {
   }
 
   pub fn add_primary_passes(&mut self, module_qualifier: symbol_table::Qualifier) {
-    self.add_default_pass::<ResolutionPass>();
+    self.add_default_pass::<DeclarePass>();
     self.add_default_pass::<TypeInferencePass>();
     self.add_pass(Box::new(LoweringPass { module_qualifier }));
   }
@@ -621,72 +611,61 @@ impl<'a> PassManager<'a> {
   }
 
   // OPTIMIZE: There's a big optimization opportunity for visiting analysis passes that presents itself by using a pass manager. For all analysis passes, perform a single AST traversal, and abstract it here via the pass manager.
-  pub fn run_with_options(
-    &mut self,
-    initial_id_count: usize,
-    options: ExecutionOptions,
-  ) -> RunResult {
-    // TODO: Implement this functionality.
-    if options.use_parallelization {
-      todo!("using parallelization is not yet supported");
-    }
-
+  pub fn run(&mut self, initial_id_count: usize) -> RunResult {
     let mut run_diagnostics = Vec::new();
 
     let mut context = ExecutionContext {
-      backend_output: None,
       symbol_table: None,
       call_graph: None,
       type_env: None,
       universes: None,
       reverse_universe_tracker: None,
       id_count: initial_id_count,
-      package: self.package,
+      main_package: self.main_package,
+      declarations: declare::DeclarationMap::new(),
     };
 
-    for module in self.package.values() {
-      while let Some(pass_entry) = self.passes.pop() {
-        let mut pass = pass_entry.0;
+    let mut results = PassResultsMap::new();
 
+    while let Some(pass_entry) = self.passes.pop() {
+      let mut pass = pass_entry.0;
+
+      for module in self.main_package.values() {
         // TODO: Make use of.
         let info = pass.get_info();
 
-        let run_result = pass.run(module, &context);
+        let run_result = pass.run_on_module(module, &mut context);
 
-        // CONSIDER: Having a trait `PassReportDiagnostic` implemented or as part of the `Pass` trait, that has a `.get_diagnostics()` function to avoid having to return diagnostics always as part of pass run results.
-
-        match run_result {
-          PassResult::Failed(diagnostics) => {
-            run_diagnostics.extend(diagnostics);
+        // Extend diagnostics if the pass happened to produce any
+        // diagnostics.
+        match &run_result {
+          PassResult::Err(diagnostics) => {
+            run_diagnostics.extend(diagnostics.clone());
 
             // Cannot recover or continue if a pass failed.
             break;
           }
-          PassResult::Success(diagnostics) => {
-            run_diagnostics.extend(diagnostics);
+          PassResult::Ok(diagnostics) => {
+            run_diagnostics.extend(diagnostics.clone());
           }
           PassResult::UnmetDependencies => {
             // TODO: Report that the pass could not be completed.
             todo!("a pass had unmet dependencies: handling of this is not yet implemented");
           }
-          PassResult::OkWithValue(value, diagnostics) => {
-            run_diagnostics.extend(diagnostics);
+          _ => {}
+        };
 
-            // CONSIDER: Ensuring that it was not already previously set to `Some` when changing context properties? Or is this a valid situation?
-            // CONSIDER: Ensuring that the same pass doesn't run more than once? Or is it a valid situation?
-            Self::apply_pass_result_value(value, &mut context);
-          }
-        }
+        results.insert(info.id, run_result);
+
+        // CONSIDER: Having a trait `PassReportDiagnostic` implemented or as part of the `Pass` trait, that has a `.get_diagnostics()` function to avoid having to return diagnostics always as part of pass run results.
       }
     }
 
+    // TODO: Handle and process dependencies.
+
     RunResult {
       diagnostics: run_diagnostics,
-      backend_output: context.backend_output,
+      results,
     }
-  }
-
-  pub fn run(&mut self, initial_id_count: usize) -> RunResult {
-    self.run_with_options(initial_id_count, ExecutionOptions::default())
   }
 }

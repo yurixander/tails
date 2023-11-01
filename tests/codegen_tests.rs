@@ -36,7 +36,7 @@ mod tests {
     qualifier: tails::symbol_table::Qualifier,
   ) -> diagnostic::Maybe<String> {
     let mut parser = tails::parser::Parser::new(lex_and_filter(source_file_contents)?);
-    let module_result = parser.parse_module(qualifier.module_name.clone());
+    let module_result = parser.parse_module(qualifier.clone());
 
     let module = match module_result {
       Ok(unit) => unit,
@@ -55,14 +55,21 @@ mod tests {
     };
 
     if diagnostics_helper.contains_errors() {
-      Err(diagnostics_helper.diagnostics)
-    } else {
-      let backend_output = pass_manager_run_result
-        .backend_output
-        .expect("backend output should have been produced if there were no error diagnostics");
-
-      Ok(backend_output)
+      return Err(diagnostics_helper.diagnostics);
     }
+
+    let llvm_lowering_pass_result = pass_manager_run_result
+      .results
+      .get(&pass::PassId::LlvmLowering)
+      .expect("backend output should have been produced if there were no error diagnostics");
+
+    Ok(match llvm_lowering_pass_result {
+      // OPTIMIZE: Consume result and avoid cloning.
+      pass::PassResult::LlvmIrOutput(llvm_ir_output) => llvm_ir_output.to_owned(),
+      _ => {
+        unreachable!("backend output should have been produced if there were no error diagnostics")
+      }
+    })
   }
 
   fn run_test(name: &str, folder_name: &str) -> diagnostic::Maybe<String> {

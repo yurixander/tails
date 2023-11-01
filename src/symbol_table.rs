@@ -112,11 +112,11 @@ pub struct SymbolPath {
 }
 
 impl std::fmt::Display for SymbolPath {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     if let Some(sub_name) = &self.sub_name {
-      f.write_fmt(format_args!("{}::{}", self.base_name, sub_name))
+      formatter.write_fmt(format_args!("{}::{}", self.base_name, sub_name))
     } else {
-      f.write_str(&self.base_name)
+      formatter.write_str(&self.base_name)
     }
   }
 }

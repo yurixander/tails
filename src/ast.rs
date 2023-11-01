@@ -10,7 +10,7 @@ pub type Diagnostic = codespan_reporting::diagnostic::Diagnostic<usize>;
 /// A compilation unit representing a single, entire source file.
 #[derive(Debug)]
 pub struct Module {
-  pub name: String,
+  pub qualifier: symbol_table::Qualifier,
   pub global_items: Vec<Item>,
   // CONSIDER: Package name, etc.? Qualifier?
 }

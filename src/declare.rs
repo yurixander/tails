@@ -1,39 +1,54 @@
 use crate::{ast, auxiliary, diagnostic, instantiation, lowering, symbol_table, types, visit};
 
+pub(crate) type DeclarationMap =
+  std::collections::HashMap<symbol_table::Qualifier, symbol_table::Scope>;
+
+pub(crate) fn merge_declarations(
+  a: DeclarationMap,
+  b: DeclarationMap,
+) -> diagnostic::Maybe<DeclarationMap> {
+  let mut result = a;
+  let mut diagnostic_helper = diagnostic::DiagnosticsHelper::default();
+
+  for (qualifier, scope) in b {
+    if let Some(existing_scope) = result.get_mut(&qualifier) {
+      for (symbol_path, (registry_id, symbol)) in scope {
+        if existing_scope.contains_key(&symbol_path) {
+          diagnostic_helper.add_one(diagnostic::Diagnostic::Redeclaration(symbol_path));
+
+          continue;
+        }
+
+        existing_scope.insert(symbol_path, (registry_id, symbol));
+      }
+    } else {
+      result.insert(qualifier, scope);
+    }
+  }
+
+  diagnostic_helper.try_return_value(result)
+}
+
 pub struct DeclarationContext {
-  /// Contains the modules with their respective top-level definitions.
-  pub(crate) declarations: std::collections::HashMap<symbol_table::Qualifier, symbol_table::Scope>,
+  pub(crate) module_scope: symbol_table::Scope,
   pub(crate) symbol_table: symbol_table::SymbolTable,
   pub(crate) diagnostics: Vec<diagnostic::Diagnostic>,
-  current_module_qualifier: symbol_table::Qualifier,
+  module_qualifier: symbol_table::Qualifier,
   instance_base_name_buffer: Option<String>,
   current_function_id: Option<symbol_table::RegistryId>,
 }
 
 // CONSIDER: A global, default scope. This would be great to declare the prelude as well.
 impl<'a> DeclarationContext {
-  pub fn new(initial_module_qualifier: symbol_table::Qualifier) -> Self {
-    // TODO: Accept modules map. One instance of this per-program.
-    // CONSIDER: Creating a new instance PER module instead of 'setting' per module? This would be more intuitive.
-    // CONSIDER: Returning `Result` if the initial module doesn't actually exist on the given module map.
-
-    let mut new_instance = Self {
+  pub fn new(module_qualifier: symbol_table::Qualifier) -> Self {
+    Self {
       symbol_table: symbol_table::SymbolTable::default(),
-      current_module_qualifier: initial_module_qualifier.clone(),
-      declarations: std::collections::HashMap::new(),
+      module_qualifier,
+      module_scope: symbol_table::Scope::default(),
       diagnostics: Vec::new(),
       instance_base_name_buffer: None,
       current_function_id: None,
-    };
-
-    let initial_module_result = new_instance.create_and_set_module(initial_module_qualifier);
-
-    assert!(
-      initial_module_result,
-      "initial module should not exist on a new instance"
-    );
-
-    new_instance
+    }
   }
 
   fn try_auto_declare_global(&mut self, item: &ast::Item) {
@@ -82,27 +97,6 @@ impl<'a> DeclarationContext {
     self.try_declare(symbol_table::Symbol { path }, function.registry_id);
   }
 
-  /// A new global scope is created and set per-module.
-  ///
-  /// Returns `false` if a module associated with the given global qualifier was
-  /// already previously defined, or `true` if it was successfully created.
-  ///
-  /// If successful, the given qualifier will also be set as the current global
-  /// qualifier.
-  pub fn create_and_set_module(&mut self, qualifier: symbol_table::Qualifier) -> bool {
-    if self.declarations.contains_key(&qualifier) {
-      return false;
-    }
-
-    self.current_module_qualifier = qualifier.clone();
-
-    self
-      .declarations
-      .insert(qualifier, std::collections::HashMap::new());
-
-    true
-  }
-
   /// Register a symbol to a binding id in the current scope.
   ///
   /// Returns `false`, and creates an error diagnostic in the local diagnostic builder, if
@@ -118,17 +112,11 @@ impl<'a> DeclarationContext {
       return false;
     }
 
+    // FIXME: Must have an assertion that
+
     self.bind(symbol, id);
 
     true
-  }
-
-  fn get_module_scope(&mut self) -> &mut symbol_table::Scope {
-    self
-      .declarations
-      .get_mut(&self.current_module_qualifier)
-      // SAFETY: Relying on the assumption that at least a single module was created. And that the given scope qualifier exists? How can we rid of this assumption? Pass it via the constructor, and remove the `Option` layer? Or check if unset, then default to global scope?
-      .expect("at least a single module should have been created")
   }
 
   /// Bind a global symbol to a given node by its id, on the current scope.
@@ -136,13 +124,13 @@ impl<'a> DeclarationContext {
   /// If the symbol is already bound, its entry value will be overwritten.
   fn bind(&mut self, symbol: symbol_table::Symbol, registry_id: symbol_table::RegistryId) {
     self
-      .get_module_scope()
+      .module_scope
       .insert(symbol.path.to_owned(), (registry_id, symbol));
   }
 
   /// Determine if the current scope contains the given symbol.
   fn is_declared(&mut self, symbol_path: &symbol_table::SymbolPath) -> bool {
-    self.get_module_scope().contains_key(symbol_path)
+    self.module_scope.contains_key(symbol_path)
   }
 }
 
@@ -326,15 +314,6 @@ mod tests {
     assert!(!declare_ctx.try_declare(symbol.clone(), id));
     assert_eq!(1, declare_ctx.diagnostics.len());
     assert!(declare_ctx.is_declared(&symbol.path));
-  }
-
-  #[test]
-  fn create_module() {
-    let mock_qualifier = symbol_table::tests::mock_qualifier();
-    let mut declare_ctx = DeclarationContext::new(mock_qualifier.clone());
-
-    assert!(!declare_ctx.create_and_set_module(mock_qualifier.clone()));
-    assert_eq!(declare_ctx.current_module_qualifier, mock_qualifier);
   }
 
   // TODO: Add more tests.
