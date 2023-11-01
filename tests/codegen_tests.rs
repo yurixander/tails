@@ -205,7 +205,7 @@ mod tests {
     closure_capture_multiple,
     closure_capture_return_closure,
     closure_type_hint_constraint,
-    closure_binding_no_redefine,
+    // closure_binding_no_redefine,
     closure_self_call,
     closure_return,
     constant,

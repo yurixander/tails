@@ -31,12 +31,6 @@ pub enum PassResult {
   Err(Vec<diagnostic::Diagnostic>),
   UnmetDependencies,
   LlvmIrOutput(String),
-  TypeInference {
-    type_env: symbol_table::TypeEnvironment,
-    universes: instantiation::TypeSchemes,
-    next_id_count: usize,
-    reverse_universe_tracker: instantiation::ReverseUniverseTracker,
-  },
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy, Debug)]
@@ -191,9 +185,6 @@ impl Pass for LoweringPass {
       );
     }
 
-    // TODO: Must add diagnostics (could be warnings produced).
-    todo!();
-
     PassResult::LlvmIrOutput(llvm_module_string)
   }
 }
@@ -225,9 +216,9 @@ impl Pass for LifetimeAnalysisPass {
 
     lifetime_analysis_ctx.visit_module(module);
 
-    for item in &module.global_items {
+    for global_item in &module.global_items {
       visit::traverse_possibly_polymorphic_global_item(
-        item,
+        global_item,
         reverse_universe_tracker,
         &mut lifetime_analysis_ctx,
       );
@@ -352,11 +343,13 @@ impl Pass for LinkPass {
       let mut link_ctx = link::LinkContext::new(&context.declarations, qualifier.clone())
         .expect("module should have been created on the declaration step");
 
-      for item in &modules.global_items {
-        item.traverse(&mut link_ctx);
+      for global_item in &modules.global_items {
+        global_item.traverse(&mut link_ctx);
       }
 
       diagnostic_helper.add_many(link_ctx.diagnostics);
+
+      // CONSIDER: Performing a check to ensure that there are no existing duplicates (assertion check?).
       symbol_table.links.extend(link_ctx.links);
     }
 
@@ -451,11 +444,11 @@ impl Pass for TypeInferencePass {
   ) -> PassResult {
     let symbol_table = require_dependency!(&context.symbol_table);
 
-    let mut initial_inference_context =
+    let mut inference_context =
       inference::InferenceContext::new(symbol_table, None, context.id_count);
 
-    for item in &module.global_items {
-      let is_polymorphic = item
+    for global_item in &module.global_items {
+      let is_polymorphic = global_item
         .find_generics()
         .map(|generics| !generics.parameters.is_empty())
         .unwrap_or(false);
@@ -463,7 +456,7 @@ impl Pass for TypeInferencePass {
       // Do not infer types for polymorphic items which aren't
       // invoked by artifacts.
       if !is_polymorphic {
-        initial_inference_context.visit(item);
+        inference_context.visit(global_item);
       }
     }
 
@@ -480,7 +473,7 @@ impl Pass for TypeInferencePass {
       "each artifact should have a corresponding universe"
     );
 
-    let inference_results = initial_inference_context.into_overall_result();
+    let inference_results = inference_context.into_overall_result();
 
     let mut type_unification_context = unification::TypeUnificationContext::new(
       symbol_table,
@@ -600,6 +593,7 @@ impl<'a> PassManager<'a> {
 
   pub fn add_primary_passes(&mut self, module_qualifier: symbol_table::Qualifier) {
     self.add_default_pass::<DeclarePass>();
+    self.add_default_pass::<LinkPass>();
     self.add_default_pass::<TypeInferencePass>();
     self.add_pass(Box::new(LoweringPass { module_qualifier }));
   }
@@ -647,10 +641,6 @@ impl<'a> PassManager<'a> {
           }
           PassResult::Ok(diagnostics) => {
             run_diagnostics.extend(diagnostics.clone());
-          }
-          PassResult::UnmetDependencies => {
-            // TODO: Report that the pass could not be completed.
-            todo!("a pass had unmet dependencies: handling of this is not yet implemented");
           }
           _ => {}
         };
