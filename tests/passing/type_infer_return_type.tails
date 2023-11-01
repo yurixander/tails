@@ -1,0 +1,13 @@
+func a() -> _:
+  pass
+
+func b() -> _:
+  123
+
+func c() -> _:
+  {x: 123, y: 3.14}
+
+func tests() -> unit:
+  a()
+  discard b()
+  discard c()

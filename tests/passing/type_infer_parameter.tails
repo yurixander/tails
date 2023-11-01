@@ -1,0 +1,21 @@
+func a(x: _) -> unit:
+  pass
+
+func b(x: _, y: _) -> unit:
+  pass
+
+func c(x: _) -> unit:
+  pass
+
+func tests() -> unit:
+  -- a
+  a(123)
+  a(321)
+
+  -- b
+  b(3.14, "hello")
+  b(123.321, "world")
+
+  -- c
+  c({x: 123, y: 3.14})
+  c({x: 321, y: 123.321})

@@ -1,0 +1,5 @@
+func a(x: _) -> unit:
+  x.x
+
+func tests() -> unit:
+  a({x: pass})

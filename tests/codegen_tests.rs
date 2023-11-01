@@ -280,8 +280,11 @@ mod tests {
     tuple_typed,
     tuple_nested,
     tuple_single,
-    type_infer,
-    type_never,
+    type_infer_binding,
+    type_infer_parameter,
+    type_infer_object_access,
+    type_infer_return_type,
+    type_infer_complex,
     type_def,
     type_def_nested,
     unary_op,
@@ -332,7 +335,8 @@ mod tests {
     declare_foreign_function_redefine,
     call_site_invalid_direct_callee,
     call_site_invalid_indirect_callee,
-    resolution_missing_function
+    resolution_missing_function,
+    type_infer_mismatch
   );
 }
 

@@ -1,0 +1,6 @@
+func a(x: _) -> unit:
+  pass
+
+func tests() -> unit:
+  a(123)
+  a(3.14)

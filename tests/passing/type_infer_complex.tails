@@ -1,0 +1,43 @@
+type Id<T> = T
+
+-- Infer return type + using inferred parameter as return value.
+func a(x: _) -> _:
+  x
+
+-- Wrapped infer type: parameter type hint.
+func b(x: Id<_>) -> unit:
+  pass
+
+-- Wrapped infer type: return type hint.
+func c() -> Id<_>:
+  123
+
+-- Wrapped infer type: parameter type hint + return type hint.
+func d(x: Id<_>) -> Id<_>:
+  x
+
+-- Wrapped infer type: nesting.
+func e(x: Id<Id<_>>) -> Id<Id<_>>:
+  x
+
+-- TODO: Add tests for infer types + generics.
+
+func tests() -> unit:
+  -- a
+  discard a(123)
+  discard a(321)
+
+  -- b
+  b(123)
+  b(321)
+
+  -- c
+  discard c()
+
+  -- d
+  discard d(3.14)
+  discard d(123.321)
+
+  -- e
+  discard e(3.14)
+  discard e(123.321)
