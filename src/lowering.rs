@@ -1537,18 +1537,6 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
         .left()
     };
 
-    // REVIEW: Don't need to resolve return type? Is the entire signature type already resolved? If so, document it here.
-    // If the callee's return type is never, then the statements
-    // after the call site will never be executed. Build an `unreachable`
-    // LLVM instruction, which LLVM can utilize to optimize the code (e.g.
-    // remove dead code).
-    if callee_signature_type.return_type.is_a_never() {
-      self
-        .llvm_builder
-        .build_unreachable()
-        .expect(BUG_BUILDER_UNSET);
-    }
-
     self.restore_state(previous_state);
 
     llvm_call

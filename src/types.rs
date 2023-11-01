@@ -346,9 +346,6 @@ pub enum Type {
   Generic(GenericType),
   /// A meta type that represents the lack of a value.
   Unit,
-  /// Usually represents a function that will never return, or a value that
-  /// will never evaluate. This will successfully unify against any other type.
-  Never,
 }
 
 impl Type {
@@ -441,10 +438,6 @@ impl Type {
     }
 
     false
-  }
-
-  pub(crate) fn is_a_never(&self) -> bool {
-    matches!(self, Type::Never)
   }
 
   /// Determine whether the type is the unit type.

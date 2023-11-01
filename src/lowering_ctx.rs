@@ -474,7 +474,7 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
 
     match self.resolve_type(ty).as_ref() {
       // REVIEW: Since now unit types DO lower to LLVM struct values, shouldn't it no longer return `Option`, but instead the actual lowered unit type, instead of it being a special case for parameters? This would be more consistent and avoid special treatment of parameters.
-      types::Type::Unit | types::Type::Never => None,
+      types::Type::Unit => None,
       types::Type::Object(object_type) => Some(self.lower_object_type(object_type).as_basic_type_enum()),
       types::Type::Union(union) => Some(self.lower_union_type(union)),
       types::Type::Primitive(primitive_type) => Some(self.lower_primitive_type(primitive_type)),

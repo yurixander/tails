@@ -54,7 +54,6 @@ pub enum TokenKind {
   TypeUnit,
   TypeOpaque,
   TypeChar,
-  TypeNever,
   BraceL,
   BraceR,
   ParenthesesL,
@@ -186,7 +185,6 @@ impl Lexer {
       "default" => TokenKind::Default,
       "uses" => TokenKind::Uses,
       "raise" => TokenKind::Raise,
-      "never" => TokenKind::TypeNever,
       _ => return None,
     })
   }

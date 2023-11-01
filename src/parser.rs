@@ -516,11 +516,6 @@ impl Parser {
         })
       }
       lexer::TokenKind::Identifier(_) => types::Type::Stub(self.parse_stub_type()?),
-      lexer::TokenKind::TypeNever => {
-        self.skip()?;
-
-        types::Type::Never
-      }
       lexer::TokenKind::BraceL => types::Type::Object(self.parse_object_type()?),
       lexer::TokenKind::TypeUnit => self.parse_unit_type()?,
       lexer::TokenKind::TypeBool => types::Type::Primitive(self.parse_bool_type()?),

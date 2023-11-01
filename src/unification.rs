@@ -312,12 +312,6 @@ impl TypeUnificationContext<'_> {
           Ok(())
         }
       }
-      // BUG: (test:type_never) Because unification against the never type does not update the substitution of the other type, the other type may remain the same (if it is not a type variable), and thus during lowering there would be missed opportunities to add the LLVM `unreachable` instruction. Find out whether there's a way to overcome this, or whether it is acceptable behavior.
-      // Since the never type unifies against anything, it is placed
-      // after the other cases, to allow for any substitution update
-      // to occur (for example, type variable substitution, or generic
-      // substitution).
-      (types::Type::Never, _) | (_, types::Type::Never) => Ok(()),
       _ => Err(vec![diagnostic::Diagnostic::TypeMismatch(
         type_a.to_owned(),
         type_b.to_owned(),
