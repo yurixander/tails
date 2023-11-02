@@ -151,12 +151,12 @@ impl Pass for LoweringPass {
       &llvm_module,
     );
 
-    const ENTRY_POINT_NAME: &str = "tests";
+    // FIXME: This doesn't apply to all cases; only used for tests.
+    const ENTRY_POINT_NAME: &str = "main";
 
-    // REVIEW: Is this necessary?
+    // OPTIMIZE: Better way to find the entry point function rather then just searching for a function named `main` through all modules.
     let entry_point_opt = module.global_items.iter().find(|node| {
       if let ast::Item::Function(function) = node {
-        // CONSIDER: All tests should move to simply having a main function.
         function.name == ENTRY_POINT_NAME
       } else {
         false

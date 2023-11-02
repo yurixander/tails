@@ -106,6 +106,10 @@ pub struct DiagnosticsHelper {
 }
 
 impl DiagnosticsHelper {
+  pub fn contains_errors_(diagnostics: &[Diagnostic]) -> bool {
+    diagnostics.iter().any(Diagnostic::is_error)
+  }
+
   pub fn try_add_one(&mut self, diagnostic: Diagnostic) -> Maybe {
     let is_error = diagnostic.is_error();
 
@@ -116,6 +120,10 @@ impl DiagnosticsHelper {
     } else {
       Ok(())
     }
+  }
+
+  pub fn contains_errors(&self) -> bool {
+    Self::contains_errors_(&self.diagnostics)
   }
 
   pub fn check(&self) -> Maybe {
@@ -140,10 +148,6 @@ impl DiagnosticsHelper {
 
   pub fn add_many(&mut self, diagnostics: Vec<Diagnostic>) {
     self.diagnostics.extend(diagnostics);
-  }
-
-  pub fn contains_errors(&self) -> bool {
-    self.diagnostics.iter().any(Diagnostic::is_error)
   }
 
   pub fn try_return_value<T>(self, value: T) -> Maybe<T> {

@@ -219,6 +219,8 @@ impl Lexer {
   }
 
   pub fn new(input: Vec<char>) -> Self {
+    // OPTIMIZE: `Vec<char>` might be inefficient since it needs to be cloned. Consider using `&str` instead, or some other reference type.
+
     let current_char = if input.is_empty() {
       None
     } else {
