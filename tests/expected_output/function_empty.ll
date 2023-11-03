@@ -1,5 +1,5 @@
-; ModuleID = 'function_empty'
-source_filename = "function_empty"
+; ModuleID = 'tests.function_empty'
+source_filename = "tests.function_empty"
 
 define private void @tests_function_empty.tests() {
 fn.entry:

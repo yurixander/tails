@@ -1,5 +1,5 @@
-; ModuleID = 'if_nesting'
-source_filename = "if_nesting"
+; ModuleID = 'tests.if_nesting'
+source_filename = "tests.if_nesting"
 
 define private void @tests_if_nesting.tests() {
 fn.entry:

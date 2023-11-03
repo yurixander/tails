@@ -1,5 +1,5 @@
-; ModuleID = 'type_def'
-source_filename = "type_def"
+; ModuleID = 'tests.type_def'
+source_filename = "tests.type_def"
 
 @string_literal = private unnamed_addr constant [5 x i8] c"john\00", align 1
 

@@ -1,5 +1,5 @@
-; ModuleID = 'tuple_typed'
-source_filename = "tuple_typed"
+; ModuleID = 'tests.tuple_typed'
+source_filename = "tests.tuple_typed"
 
 define private void @tests_tuple_typed.tests() {
 fn.entry:

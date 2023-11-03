@@ -1,5 +1,5 @@
-; ModuleID = 'generics_call_multi_annotations'
-source_filename = "generics_call_multi_annotations"
+; ModuleID = 'tests.generics_call_multi_annotations'
+source_filename = "tests.generics_call_multi_annotations"
 
 @string_literal = private unnamed_addr constant [5 x i8] c"test\00", align 1
 

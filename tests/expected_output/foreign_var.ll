@@ -1,5 +1,5 @@
-; ModuleID = 'foreign_var'
-source_filename = "foreign_var"
+; ModuleID = 'tests.foreign_var'
+source_filename = "tests.foreign_var"
 
 @stdout = external global ptr
 @stdin = external global ptr

@@ -1,5 +1,5 @@
-; ModuleID = 'hof_args'
-source_filename = "hof_args"
+; ModuleID = 'tests.hof_args'
+source_filename = "tests.hof_args"
 
 define private void @tests_hof_args.tests() {
 fn.entry:

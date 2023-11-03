@@ -1,5 +1,5 @@
-; ModuleID = 'closure_capture'
-source_filename = "closure_capture"
+; ModuleID = 'tests.closure_capture'
+source_filename = "tests.closure_capture"
 
 define private void @tests_closure_capture.tests() {
 fn.entry:

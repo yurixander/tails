@@ -1,5 +1,5 @@
-; ModuleID = 'generics_call_zero'
-source_filename = "generics_call_zero"
+; ModuleID = 'tests.generics_call_zero'
+source_filename = "tests.generics_call_zero"
 
 define private void @tests_generics_call_zero.tests() {
 fn.entry:

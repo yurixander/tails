@@ -1,5 +1,5 @@
-; ModuleID = 'tuple_nested'
-source_filename = "tuple_nested"
+; ModuleID = 'tests.tuple_nested'
+source_filename = "tests.tuple_nested"
 
 @string_literal = private unnamed_addr constant [5 x i8] c"test\00", align 1
 

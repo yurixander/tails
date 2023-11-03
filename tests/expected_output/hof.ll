@@ -1,5 +1,5 @@
-; ModuleID = 'hof'
-source_filename = "hof"
+; ModuleID = 'tests.hof'
+source_filename = "tests.hof"
 
 define private void @tests_hof.tests() {
 fn.entry:

@@ -1,5 +1,5 @@
-; ModuleID = 'generics_constrain'
-source_filename = "generics_constrain"
+; ModuleID = 'tests.generics_constrain'
+source_filename = "tests.generics_constrain"
 
 @guard.message = private unnamed_addr constant [56 x i8] c"runtime assertion failed: dereference of a null pointer\00", align 1
 @guard.note.message = private unnamed_addr constant [131 x i8] c"the program was aborted by a compiler guard to ensure that it does not enter an invalid state which may lead to undefined behavior\00", align 1

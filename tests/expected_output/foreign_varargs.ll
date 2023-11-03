@@ -1,5 +1,5 @@
-; ModuleID = 'foreign_varargs'
-source_filename = "foreign_varargs"
+; ModuleID = 'tests.foreign_varargs'
+source_filename = "tests.foreign_varargs"
 
 @string_literal = private unnamed_addr constant [5 x i8] c"test\00", align 1
 @string_literal.1 = private unnamed_addr constant [8 x i8] c"test %d\00", align 1

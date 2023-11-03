@@ -1,5 +1,5 @@
-; ModuleID = 'type_infer_parameter'
-source_filename = "type_infer_parameter"
+; ModuleID = 'tests.type_infer_parameter'
+source_filename = "tests.type_infer_parameter"
 
 @string_literal = private unnamed_addr constant [6 x i8] c"hello\00", align 1
 @string_literal.1 = private unnamed_addr constant [6 x i8] c"world\00", align 1

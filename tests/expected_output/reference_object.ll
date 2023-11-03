@@ -1,5 +1,5 @@
-; ModuleID = 'reference_object'
-source_filename = "reference_object"
+; ModuleID = 'tests.reference_object'
+source_filename = "tests.reference_object"
 
 @string_literal = private unnamed_addr constant [5 x i8] c"test\00", align 1
 

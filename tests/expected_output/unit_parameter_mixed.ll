@@ -1,5 +1,5 @@
-; ModuleID = 'unit_parameter_mixed'
-source_filename = "unit_parameter_mixed"
+; ModuleID = 'tests.unit_parameter_mixed'
+source_filename = "tests.unit_parameter_mixed"
 
 define private void @tests_unit_parameter_mixed.tests() {
 fn.entry:

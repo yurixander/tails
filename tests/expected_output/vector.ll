@@ -1,5 +1,5 @@
-; ModuleID = 'vector'
-source_filename = "vector"
+; ModuleID = 'tests.vector'
+source_filename = "tests.vector"
 
 @tests_vector.NOT_FOUND = addrspace(4) global i32 -1
 @guard.message = private unnamed_addr constant [56 x i8] c"runtime assertion failed: dereference of a null pointer\00", align 1

@@ -1,5 +1,5 @@
-; ModuleID = 'binding_literal'
-source_filename = "binding_literal"
+; ModuleID = 'tests.binding_literal'
+source_filename = "tests.binding_literal"
 
 define private void @tests_binding_literal.tests() {
 fn.entry:

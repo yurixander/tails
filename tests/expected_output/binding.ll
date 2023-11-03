@@ -1,5 +1,5 @@
-; ModuleID = 'binding'
-source_filename = "binding"
+; ModuleID = 'tests.binding'
+source_filename = "tests.binding"
 
 @string_literal = private unnamed_addr constant [5 x i8] c"test\00", align 1
 @string_literal.3 = private unnamed_addr constant [3 x i8] c"hi\00", align 1

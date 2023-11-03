@@ -1,5 +1,5 @@
-; ModuleID = 'loop_'
-source_filename = "loop_"
+; ModuleID = 'tests.loop_'
+source_filename = "tests.loop_"
 
 define private void @tests_loop_.tests() {
 fn.entry:

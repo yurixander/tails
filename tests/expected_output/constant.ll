@@ -1,5 +1,5 @@
-; ModuleID = 'constant'
-source_filename = "constant"
+; ModuleID = 'tests.constant'
+source_filename = "tests.constant"
 
 @tests_constant.A = addrspace(4) global i32 123
 

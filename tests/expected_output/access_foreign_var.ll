@@ -1,5 +1,5 @@
-; ModuleID = 'access_foreign_var'
-source_filename = "access_foreign_var"
+; ModuleID = 'tests.access_foreign_var'
+source_filename = "tests.access_foreign_var"
 
 @stdin = external global ptr
 @guard.message = private unnamed_addr constant [56 x i8] c"runtime assertion failed: dereference of a null pointer\00", align 1

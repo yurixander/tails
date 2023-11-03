@@ -1,5 +1,5 @@
-; ModuleID = 'declare'
-source_filename = "declare"
+; ModuleID = 'tests.declare'
+source_filename = "tests.declare"
 
 define private void @tests_declare.tests() {
 fn.entry:

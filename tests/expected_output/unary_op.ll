@@ -1,5 +1,5 @@
-; ModuleID = 'unary_op'
-source_filename = "unary_op"
+; ModuleID = 'tests.unary_op'
+source_filename = "tests.unary_op"
 
 define private void @tests_unary_op.tests() {
 fn.entry:

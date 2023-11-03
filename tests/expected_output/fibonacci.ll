@@ -1,5 +1,5 @@
-; ModuleID = 'fibonacci'
-source_filename = "fibonacci"
+; ModuleID = 'tests.fibonacci'
+source_filename = "tests.fibonacci"
 
 define private void @tests_fibonacci.tests() {
 fn.entry:

@@ -1,5 +1,5 @@
-; ModuleID = 'factorial'
-source_filename = "factorial"
+; ModuleID = 'tests.factorial'
+source_filename = "tests.factorial"
 
 define private void @tests_factorial.tests() {
 fn.entry:

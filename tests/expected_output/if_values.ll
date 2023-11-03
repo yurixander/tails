@@ -1,5 +1,5 @@
-; ModuleID = 'if_values'
-source_filename = "if_values"
+; ModuleID = 'tests.if_values'
+source_filename = "tests.if_values"
 
 @string_literal = private unnamed_addr constant [2 x i8] c"b\00", align 1
 @string_literal.1 = private unnamed_addr constant [2 x i8] c"a\00", align 1

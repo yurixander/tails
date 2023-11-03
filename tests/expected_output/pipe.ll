@@ -1,5 +1,5 @@
-; ModuleID = 'pipe'
-source_filename = "pipe"
+; ModuleID = 'tests.pipe'
+source_filename = "tests.pipe"
 
 define private void @tests_pipe.tests() {
 fn.entry:

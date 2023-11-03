@@ -1,5 +1,5 @@
-; ModuleID = 'pointer_assignment_foreign'
-source_filename = "pointer_assignment_foreign"
+; ModuleID = 'tests.pointer_assignment_foreign'
+source_filename = "tests.pointer_assignment_foreign"
 
 @stdin = external global ptr
 

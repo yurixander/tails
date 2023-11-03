@@ -1,5 +1,5 @@
-; ModuleID = 'generics_unconstrained'
-source_filename = "generics_unconstrained"
+; ModuleID = 'tests.generics_unconstrained'
+source_filename = "tests.generics_unconstrained"
 
 define private void @tests_generics_unconstrained.tests() {
 fn.entry:

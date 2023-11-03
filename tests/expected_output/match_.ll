@@ -1,5 +1,5 @@
-; ModuleID = 'match_'
-source_filename = "match_"
+; ModuleID = 'tests.match_'
+source_filename = "tests.match_"
 
 define private void @tests_match_.tests() {
 fn.entry:

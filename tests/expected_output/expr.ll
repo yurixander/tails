@@ -1,5 +1,5 @@
-; ModuleID = 'expr'
-source_filename = "expr"
+; ModuleID = 'tests.expr'
+source_filename = "tests.expr"
 
 @guard.message = private unnamed_addr constant [43 x i8] c"runtime assertion failed: division by zero\00", align 1
 @guard.note.message = private unnamed_addr constant [131 x i8] c"the program was aborted by a compiler guard to ensure that it does not enter an invalid state which may lead to undefined behavior\00", align 1

@@ -1,5 +1,5 @@
-; ModuleID = 'generics_call_memo'
-source_filename = "generics_call_memo"
+; ModuleID = 'tests.generics_call_memo'
+source_filename = "tests.generics_call_memo"
 
 @string_literal = private unnamed_addr constant [6 x i8] c"hello\00", align 1
 @string_literal.2 = private unnamed_addr constant [6 x i8] c"world\00", align 1

@@ -1,5 +1,5 @@
-; ModuleID = 'generics_sizeof'
-source_filename = "generics_sizeof"
+; ModuleID = 'tests.generics_sizeof'
+source_filename = "tests.generics_sizeof"
 
 define private void @tests_generics_sizeof.tests() {
 fn.entry:

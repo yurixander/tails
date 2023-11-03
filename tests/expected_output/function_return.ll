@@ -1,5 +1,5 @@
-; ModuleID = 'function_return'
-source_filename = "function_return"
+; ModuleID = 'tests.function_return'
+source_filename = "tests.function_return"
 
 define private void @tests_function_return.tests() {
 fn.entry:

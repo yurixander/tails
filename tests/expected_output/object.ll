@@ -1,5 +1,5 @@
-; ModuleID = 'object'
-source_filename = "object"
+; ModuleID = 'tests.object'
+source_filename = "tests.object"
 
 define private void @tests_object.tests() {
 fn.entry:

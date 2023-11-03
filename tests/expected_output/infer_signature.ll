@@ -1,5 +1,5 @@
-; ModuleID = 'infer_signature'
-source_filename = "infer_signature"
+; ModuleID = 'tests.infer_signature'
+source_filename = "tests.infer_signature"
 
 define private void @tests_infer_signature.tests() {
 fn.entry:

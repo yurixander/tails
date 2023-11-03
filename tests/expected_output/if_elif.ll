@@ -1,5 +1,5 @@
-; ModuleID = 'if_elif'
-source_filename = "if_elif"
+; ModuleID = 'tests.if_elif'
+source_filename = "tests.if_elif"
 
 define private void @tests_if_elif.tests() {
 fn.entry:

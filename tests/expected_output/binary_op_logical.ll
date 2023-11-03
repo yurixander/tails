@@ -1,5 +1,5 @@
-; ModuleID = 'binary_op_logical'
-source_filename = "binary_op_logical"
+; ModuleID = 'tests.binary_op_logical'
+source_filename = "tests.binary_op_logical"
 
 define private void @tests_binary_op_logical.tests() {
 fn.entry:

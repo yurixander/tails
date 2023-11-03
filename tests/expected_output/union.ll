@@ -1,5 +1,5 @@
-; ModuleID = 'union'
-source_filename = "union"
+; ModuleID = 'tests.union'
+source_filename = "tests.union"
 
 define private void @tests_union.tests() {
 fn.entry:

@@ -1,5 +1,5 @@
-; ModuleID = 'guard_null_dereference'
-source_filename = "guard_null_dereference"
+; ModuleID = 'tests.guard_null_dereference'
+source_filename = "tests.guard_null_dereference"
 
 @guard.message = private unnamed_addr constant [56 x i8] c"runtime assertion failed: dereference of a null pointer\00", align 1
 @guard.note.message = private unnamed_addr constant [131 x i8] c"the program was aborted by a compiler guard to ensure that it does not enter an invalid state which may lead to undefined behavior\00", align 1

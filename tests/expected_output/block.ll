@@ -1,5 +1,5 @@
-; ModuleID = 'block'
-source_filename = "block"
+; ModuleID = 'tests.block'
+source_filename = "tests.block"
 
 define private void @tests_block.tests() {
 fn.entry:

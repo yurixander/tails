@@ -1,5 +1,5 @@
-; ModuleID = 'foreign_var_object_type'
-source_filename = "foreign_var_object_type"
+; ModuleID = 'tests.foreign_var_object_type'
+source_filename = "tests.foreign_var_object_type"
 
 @a = external global ptr
 @guard.message = private unnamed_addr constant [56 x i8] c"runtime assertion failed: dereference of a null pointer\00", align 1

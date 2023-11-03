@@ -1,5 +1,5 @@
-; ModuleID = 'binding_hof'
-source_filename = "binding_hof"
+; ModuleID = 'tests.binding_hof'
+source_filename = "tests.binding_hof"
 
 define private void @tests_binding_hof.tests() {
 fn.entry:

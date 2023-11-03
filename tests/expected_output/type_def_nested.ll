@@ -1,5 +1,5 @@
-; ModuleID = 'type_def_nested'
-source_filename = "type_def_nested"
+; ModuleID = 'tests.type_def_nested'
+source_filename = "tests.type_def_nested"
 
 define private void @tests_type_def_nested.tests() {
 fn.entry:

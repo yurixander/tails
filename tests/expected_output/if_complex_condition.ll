@@ -1,5 +1,5 @@
-; ModuleID = 'if_complex_condition'
-source_filename = "if_complex_condition"
+; ModuleID = 'tests.if_complex_condition'
+source_filename = "tests.if_complex_condition"
 
 define private void @tests_if_complex_condition.tests() {
 fn.entry:

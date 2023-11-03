@@ -1,5 +1,5 @@
-; ModuleID = 'pointer_assignment'
-source_filename = "pointer_assignment"
+; ModuleID = 'tests.pointer_assignment'
+source_filename = "tests.pointer_assignment"
 
 define private void @tests_pointer_assignment.tests() {
 fn.entry:

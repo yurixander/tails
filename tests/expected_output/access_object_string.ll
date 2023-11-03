@@ -1,5 +1,5 @@
-; ModuleID = 'access_object_string'
-source_filename = "access_object_string"
+; ModuleID = 'tests.access_object_string'
+source_filename = "tests.access_object_string"
 
 @string_literal = private unnamed_addr constant [5 x i8] c"test\00", align 1
 

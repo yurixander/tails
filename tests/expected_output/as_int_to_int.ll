@@ -1,5 +1,5 @@
-; ModuleID = 'as_int_to_int'
-source_filename = "as_int_to_int"
+; ModuleID = 'tests.as_int_to_int'
+source_filename = "tests.as_int_to_int"
 
 define private void @tests_as_int_to_int.tests() {
 fn.entry:

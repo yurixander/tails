@@ -1,5 +1,5 @@
-; ModuleID = 'object_field_shorthand'
-source_filename = "object_field_shorthand"
+; ModuleID = 'tests.object_field_shorthand'
+source_filename = "tests.object_field_shorthand"
 
 define private void @tests_object_field_shorthand.tests() {
 fn.entry:

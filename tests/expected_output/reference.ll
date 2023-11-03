@@ -1,5 +1,5 @@
-; ModuleID = 'reference'
-source_filename = "reference"
+; ModuleID = 'tests.reference'
+source_filename = "tests.reference"
 
 define private void @tests_reference.tests() {
 fn.entry:
