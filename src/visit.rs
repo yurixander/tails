@@ -58,7 +58,6 @@ pub(crate) fn traverse_polymorphic_item(
   artifact_visitor.set_universe_stack(previous_universe_stack);
 }
 
-// CONSIDER: Having the type parameter be an associated type instead.
 pub trait Visitor<T = ()> {
   fn default_value(&mut self) -> T;
 
@@ -466,6 +465,7 @@ impl Visitable for ast::Try {
     // visitor.visit_effect(&try_.handlers);
 
     // TODO: Visit effect handlers, and default effect handler.
+    todo!();
   }
 }
 

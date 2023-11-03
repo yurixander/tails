@@ -260,11 +260,7 @@ impl<'a> BaseResolutionHelper<'a> {
     let substitution = self
       .get_in_universe_stack(substitution_id, &universe_stack)
       .map_err(|_| TypeResolutionError::MissingUniverse)?
-      .ok_or_else(|| {
-        panic!("debugging stop 1");
-
-        TypeResolutionError::CouldNotFindSubstitutionInAnyUniverseInUniverseStack
-      })?;
+      .ok_or_else(|| TypeResolutionError::CouldNotFindSubstitutionInAnyUniverseInUniverseStack)?;
 
     // TODO: Perform `!occurs_in` check to prevent stack overflow / infinite loop with the substitution and the original type. Use the original type and the substitution as the operands for the `occurs_in` assertion. Since this function is `Result`, return `Err` instead of having an assertion (is it acceptable for a type to resolve to itself?).
     // FIXME: This won't work for this case; recursion cannot be simply detected via stub type stripping, as instantiation is involved at each recursive step! Instead, some sort of state must be passed around resolution steps to detect recursion.

@@ -46,7 +46,6 @@ pub enum PassKind {
   /// Essential passes occur before other kinds of passes, because they provide result values
   /// that are needed as dependencies to other subsequent passes.
   Primary(usize),
-  // CONSIDER: Passing analysis-only options (such as aggregate) when choosing analysis variant (turn it into a struct variant).
   /// An analysis pass upon the AST that may produce diagnostics.
   Analysis,
   /// A backend-focused, lowering pass that produces an output string in a lower-level IR or
@@ -56,9 +55,6 @@ pub enum PassKind {
   Backend,
 }
 
-// CONSIDER: Debugging/verification pass. Could be implemented as a simple traversal function call.
-
-// CONSIDER: Providing a field that outlines dependencies via a vector of pass ids. This would get rid of the requirement of explicit ordering for essential passes.
 #[derive(Clone, Copy)]
 pub struct PassInfo {
   /// Used to uniquely identify a pass.
@@ -116,7 +112,7 @@ impl Pass for SemanticCheckPass {
       );
     }
 
-    diagnostic::DiagnosticsHelper::from(semantic_check_ctx.get_diagnostics()).into_pass_result()
+    diagnostic::DiagnosticsHelper::from(semantic_check_ctx.into_diagnostics()).into_pass_result()
   }
 }
 
@@ -624,9 +620,7 @@ impl<'a> PassManager<'a> {
       let mut pass = pass_entry.0;
 
       for module in self.main_package.values() {
-        // TODO: Make use of.
         let info = pass.get_info();
-
         let run_result = pass.run_on_module(module, &mut context);
 
         // Extend diagnostics if the pass happened to produce any

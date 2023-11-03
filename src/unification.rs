@@ -12,7 +12,6 @@ use crate::{
   types,
 };
 
-// CONSIDER: A `Consumable` trait that defines a method to consume (move to own) results of context(s). This would be implemented for the various contexts, or perhaps the passes themselves (maybe implement as part of the `Pass` trait?). This would also be used by the pass manager instead of custom retrieval logic, which would migrate that retrieval logic and make it more organized, perhaps allow abstraction on the pass manager of result handling. The problem with this would be that the return type cannot be consistent among trait instances! It seems that the results are bound to be cherry-picked because of differing types. Perhaps it could be boxed under a `ConsumableResult` enum/union. This would also help to get rid of functions like `solve_constraints` and basically `run` functions, and instead organize and separate them into a trait impl.
 pub struct TypeUnificationContext<'a> {
   pub(crate) symbol_table: &'a symbol_table::SymbolTable,
   /// Substitution map for type variables and generics.

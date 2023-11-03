@@ -864,7 +864,7 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
         .expect(lowering::BUG_BUILDER_UNSET);
     }
 
-    // REVIEW: Since we removed return statements, isn't fallthrough always going to occur? If so, we don't need this terminator check?
+    // REVIEW: Since we removed return statements, isn't fallthrough always going to occur? If so, we don't need this terminator check? If not, consider using assertion.
     // REVIEW: Is this correct? Or should we be using `get_current_block()` here? Or maybe this is just a special case to not leave the `then` block without a terminator? Investigate.
     // Fallthrough the `then` block if applicable.
     if self.get_current_block().get_terminator().is_none() {
@@ -897,7 +897,7 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
 
     self.llvm_builder.position_at_end(llvm_else_block);
 
-    // REVIEW: Shouldn't we specify to lower with access mode set here?
+    // REVIEW: Shouldn't we specify to lower with access mode set here? Confirm by using pointer-typed values as the `else` branch's yield expression.
     let llvm_else_branch_value = self.visit_expr(else_branch);
 
     if let Some(llvm_yield_value_alloca) = llvm_yield_value_alloca_opt {

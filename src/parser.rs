@@ -48,7 +48,7 @@ impl Parser {
       // Everything else has a default precedence of 0. The `not` operator has no
       // defined precedence (thus defaulting to 0) because it is a unary operator.
       _ => 0,
-      // REVIEW: What about other tokens such as `as`, and `in`? These should have the greatest precedence?
+      // REVIEW: What about other tokens such as `as`? These should have the greatest precedence?
     }
   }
 
@@ -128,7 +128,6 @@ impl Parser {
         | lexer::TokenKind::Nor
         | lexer::TokenKind::Xor
         | lexer::TokenKind::Equality
-        | lexer::TokenKind::In
         | lexer::TokenKind::Inequality
         | lexer::TokenKind::PercentSign
     )
@@ -747,8 +746,6 @@ impl Parser {
 
   /// func %name (%generics)? %signature %block
   fn parse_function(&mut self) -> diagnostic::Maybe<ast::Function> {
-    // TODO: Support for visibility.
-
     self.skip_one(&lexer::TokenKind::Func)?;
 
     let name = self.parse_name()?;
@@ -1198,7 +1195,6 @@ impl Parser {
       lexer::TokenKind::Match => ast::Expr::Match(std::rc::Rc::new(self.parse_match()?)),
       lexer::TokenKind::Try => ast::Expr::Try(std::rc::Rc::new(self.parse_try()?)),
       lexer::TokenKind::Resume => ast::Expr::Resume(std::rc::Rc::new(self.parse_resume()?)),
-      lexer::TokenKind::This => ast::Expr::Reference(std::rc::Rc::new(self.parse_this()?)),
       lexer::TokenKind::Identifier(_) => {
         ast::Expr::Reference(std::rc::Rc::new(self.parse_reference()?))
       }
@@ -1245,23 +1241,6 @@ impl Parser {
     self.try_promote(expr)
   }
 
-  /// this
-  fn parse_this(&mut self) -> diagnostic::Maybe<ast::Reference> {
-    self.skip_one(&lexer::TokenKind::This)?;
-
-    Ok(ast::Reference {
-      type_id: self.id_generator.next_type_id(),
-      path: ast::Path {
-        link_id: self.id_generator.next_link_id(),
-        qualifier: None,
-        // REVIEW: Hard-coded value. Is this appropriate for all cases in this situation?
-        base_name: String::from("this"),
-        sub_name: None,
-        symbol_kind: symbol_table::SymbolKind::Declaration,
-      },
-    })
-  }
-
   /// discard %expr
   fn parse_discard(&mut self) -> diagnostic::Maybe<ast::Discard> {
     self.skip_one(&lexer::TokenKind::Discard)?;
@@ -1293,7 +1272,7 @@ impl Parser {
   }
 
   fn parse_union_instance(&mut self, path: ast::Path) -> diagnostic::Maybe<ast::UnionInstance> {
-    // TODO: Temporary syntax requirement.
+    // TODO: Temporary syntax requirement for aiding the parser.
     self.skip_one(&lexer::TokenKind::Bang)?;
 
     let value = if self.is(&lexer::TokenKind::ParenthesesL) {
@@ -1344,7 +1323,6 @@ impl Parser {
       lexer::TokenKind::LessThanEqualTo => ast::BinaryOperator::LessThanOrEqual,
       lexer::TokenKind::GreaterThanEqualTo => ast::BinaryOperator::GreaterThanOrEqual,
       lexer::TokenKind::Inequality => ast::BinaryOperator::Inequality,
-      lexer::TokenKind::In => ast::BinaryOperator::In,
       lexer::TokenKind::PercentSign => ast::BinaryOperator::Modulo,
       _ => return Err(self.expected("binary operator")),
     };
@@ -1679,7 +1657,7 @@ impl Parser {
   }
 
   fn parse_closure(&mut self) -> diagnostic::Maybe<ast::Closure> {
-    // TODO: Support for no-parentheses when parsed as an effect handler.
+    // TODO: Support for no parentheses when parsed as an effect handler.
     // CONSIDER: Adding a `ClosureKind` field to closure, to specify that it is an effect handler. This will be useful during lowering, as effect handler closures might need slightly different logic, or be more restrictive.
 
     let mut captures = Vec::new();
@@ -1879,22 +1857,15 @@ impl Parser {
 
     let mut elements = vec![first_element];
 
-    // REVIEW: Use `until_terminator` instead?
-    while self.until(&lexer::TokenKind::ParenthesesR)? {
+    while self.until_terminator(&lexer::TokenKind::ParenthesesR)? {
       elements.push(self.parse_expr()?);
 
       // At least two elements are always required. Otherwise there
-      // would be ambiguity with groups. Rust's approach is simple:
-      // `(1,)`.
-      if !self.is(&lexer::TokenKind::Comma) {
-        break;
-      }
-
-      self.skip_one(&lexer::TokenKind::Comma)?;
+      // would be ambiguity with groups. Rust's approach to single-element
+      // tuples is simple: `(1,)`.
+      self.skip_comma(&lexer::TokenKind::ParenthesesR)?;
     }
 
-    // REVIEW: Can't we simply `skip` here, because of the loop condition?
-    self.skip_one(&lexer::TokenKind::ParenthesesR)?;
     Self::check_llvm_size(elements.len())?;
 
     Ok(ast::Tuple {
@@ -1936,8 +1907,11 @@ impl Parser {
         is_variadic: false,
         kind: ast::SignatureKind::Effect,
         parameters: Vec::default(),
-        // REVIEW: Shouldn't it be default to unit type? If it's left as `None`, during inference it would create a type variable for it, which might not be what is expected.
-        return_type_hint: None,
+        // NOTE: The return type of effects is always `unit`. It shouldn't
+        // be left as `None` because it would create a type variable for it
+        // during inference, which may cause unexpected behavior (such as the
+        // return type's type variable getting unified against a concrete type).
+        return_type_hint: Some(types::Type::Unit),
         return_type_id: self.id_generator.next_type_id(),
       }
     };

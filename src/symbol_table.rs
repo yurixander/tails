@@ -102,7 +102,6 @@ impl Symbol {
   }
 }
 
-// CONSIDER: Revamping the path system. Instead of allowing a specific set number of path names, make it a vector, with one required name (the last name, or the entity name). Everything else in the vector is simply pathing to reach that entity. This will also prevent other logic from depending on pathing since it would lead to possible logic errors (ex. module name, when expecting trait name). The only always-valid name would be the entity name. This can also open the door for more flexible declarations such as constants or type aliases inside instances.
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub struct SymbolPath {
   pub base_name: String,
@@ -140,12 +139,14 @@ enum SymbolMetadataFlag {
   Inline,
 }
 
+// TODO: Make use of.
 struct SymbolLocation {
   file_path: std::path::PathBuf,
   position: usize,
   length: usize,
 }
 
+// TODO: Make use of.
 struct SymbolMetadata {
   pub location: SymbolLocation,
   pub flags: std::collections::HashSet<SymbolMetadataFlag>,
@@ -218,9 +219,6 @@ impl RegistryItem {
 pub struct SymbolTable {
   // REVIEW: Should this be here?
   pub entry_function_id: Option<RegistryId>,
-  // FIXME: Having types as keys won't work; unique ids aren't ignored when comparing types.
-  pub(crate) instances:
-    std::collections::HashMap<types::Type, std::collections::HashSet<RegistryId>>,
   /// A mapping from a referential id to the id of its target node.
   ///
   /// The reason why this is necessary is, and there is no direct mapping

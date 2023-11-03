@@ -169,7 +169,6 @@ pub struct GenericType {
   pub substitution_id: symbol_table::SubstitutionId,
 }
 
-// CONSIDER: Real literals are only composed of 32 and 64 bit width! Consider separating into their corresponding enums for real and integer types.
 #[derive(PartialEq, PartialOrd, Copy, Clone, Debug, Eq)]
 pub enum BitWidth {
   Width8 = 8,
@@ -477,13 +476,13 @@ impl Type {
   }
 
   pub(crate) fn get_inner_types(&self) -> Box<dyn Iterator<Item = &Type> + '_> {
-    // TODO: Use this function everywhere inner types are needed, for example on the main substitution function.
     match self {
       Type::Pointer(pointee) => Box::new(std::iter::once(pointee.as_ref())),
       Type::Object(object) => Box::new(object.fields.iter().map(|field| field.1)),
       Type::Tuple(TupleType(element_types)) => Box::new(element_types.iter()),
       Type::Reference(pointee) => Box::new(std::iter::once(pointee.as_ref())),
       Type::Signature(signature) => Box::new(signature.parameter_types.iter()),
+      // TODO: Handle unions case.
       Type::Union(union_) => todo!(),
       _ => Box::new(std::iter::empty()),
     }

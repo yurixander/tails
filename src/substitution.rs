@@ -76,7 +76,6 @@ impl<'a> UnificationSubstitutionHelper<'a> {
     // REVISE: Cleanup.
     // If it points to itself, ignore it.
     if is_recursive {
-      // OPTIMIZE: Avoid cloning.
       // CONSIDER: Reporting this as a problem. This function should return `Result`? Although in standard unification, it is okay for generics to point to themselves (redundant constraint)? Find/come up with a scenario where that would apply, and if it's not possible, this MUST return `Err`.
       todo!()
       // return ty.to_owned();

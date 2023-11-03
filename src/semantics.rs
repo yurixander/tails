@@ -29,7 +29,7 @@ impl<'a> SemanticCheckContext<'a> {
     }
   }
 
-  pub fn get_diagnostics(self) -> Vec<diagnostic::Diagnostic> {
+  pub fn into_diagnostics(self) -> Vec<diagnostic::Diagnostic> {
     self.diagnostics
   }
 
@@ -38,13 +38,11 @@ impl<'a> SemanticCheckContext<'a> {
   /// For example, if this node is a literal value, or a group expression.
   /// Bindings will not be followed.
   pub fn is_constant(&self, expr: &ast::Expr) -> bool {
-    // CONSIDER: Using indirect traversal to implement this check. If at any point a non-whitelisted ast item is encountered, then the item would not be considered constant.
-
     match expr.flatten() {
       // REVIEW: Should also ignore negation, since negation is normally applied to constants?
       ast::Expr::Pass(..) => true,
       ast::Expr::Literal(..) => true,
-      // CONSIDER: Disallowing certain unary operators, such as "address of" and "dereference," since it doesn't make much sense to use as part of a constant, and could lead to problems.
+      // TODO: Disallow certain unary operators, such as "address of" and "dereference," since it doesn't make much sense to use as part of a constant, and could lead to problems.
       ast::Expr::UnaryOp(unary_expr) => self.is_constant(&unary_expr.operand),
       ast::Expr::Cast(cast) => self.is_constant(&cast.operand),
       ast::Expr::BinaryOp(binary_expr) => {
@@ -226,7 +224,7 @@ impl<'a> visit::Visitor for SemanticCheckContext<'a> {
   }
 
   fn visit_constant(&mut self, constant: &ast::Constant) {
-    // TODO: Must check that no division by zero is performed. The denominator *can* be extracted IF the constant's value is indeed constant.
+    // TODO: Must check that no division by zero is performed. The denominator *can* be extracted IF the constant's value is indeed constant. Although it's not as simple as checking whether the denominator is 0, since the denominator might be a more complex constant expression that EVALUATES to 0.
 
     if !self.is_constant(&constant.value) {
       self

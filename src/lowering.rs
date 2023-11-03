@@ -437,8 +437,6 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       _ => unreachable!("{}", BUG_FIELD_MISSING),
     };
 
-    // TODO: Must disallow fields and methods with the same name on semantic check phase. Or is this already guaranteed during name resolution?
-
     let field_index = Self::assert_trunc_cast(
       object_type
         .fields
@@ -1660,7 +1658,6 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
 
     let llvm_body = self.visit_expr(&ast::Expr::Block(std::rc::Rc::clone(&function.body)));
 
-    // REVIEW: Does this actually stop from returning bindings? What if the binding's type is not unit?
     // If the return type is unit, simply return void. Having this
     // check prevents from returning bindings if they are the body's
     // yield value (last statement), which would conflict with the void

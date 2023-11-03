@@ -81,8 +81,6 @@ mod tests {
   }
 
   fn run_test(name: &str, folder_name: &str) -> diagnostic::Maybe<String> {
-    // CONSIDER: Actually compiling the output LLVM IR and running it, and expecting a `0` return code. Or, having a hybrid approach where running tess with a parameter actually compiles and executes all tests, which can be used once in a while by the developer.
-
     const FILENAME_EXTENSION: &str = "tails";
 
     let tests_path = std::env::current_dir()
@@ -141,7 +139,6 @@ mod tests {
     assert_eq!(expected_output, actual_output);
   }
 
-  // TODO: Add support for specifying what exactly should be wrong with the test (via diagnostics).
   fn run_failing_test(name: &str, matcher: &dyn Fn(Vec<diagnostic::Diagnostic>) -> bool) {
     const FAILING_FOLDER: &str = "failing";
 
@@ -349,7 +346,3 @@ mod tests {
     type_infer_mismatch
   );
 }
-
-// CONSIDER: Add embedded special-comment syntax checking feature to check produced LLVM IR, or certain properties of things. This will require that comments are treated as AST items, and also would help quite a lot if they are somehow 'attached' to things next to it; ability to obtain what comments are attached to.
-
-// TODO: Add new test module: "run-pass", should run the executable produced and complete without any panics. Also, "run-fail" tests. Furthermore, add tests around issues already encountered: specifically designed tests to ensure that fixed bugs do not reoccur, and finally, consider benchmark tests. Moreover, the comment syntax can also extend to runnable tests: by providing all the different inputs that the main function would receive and be executed on. Get creative; it's powerful.
