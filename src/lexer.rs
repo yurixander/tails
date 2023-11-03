@@ -487,7 +487,7 @@ impl Lexer {
   }
 
   /// Attempts to lex a comment from the input sequence. If the current character
-  /// is the start of a comment, the comment is read and returned as a `TokenKind`.
+  /// is the start of a comment, the comment is read and returned.
   /// Otherwise, `None` is returned.
   fn try_lex_comment(&mut self) -> diagnostic::Maybe<Option<TokenKind>> {
     if self.current_char != Some(Self::COMMENT_CHAR) || self.peek_char() != Some(Self::COMMENT_CHAR)
@@ -495,12 +495,9 @@ impl Lexer {
       return Ok(None);
     }
 
-    // By not skipping the newline character, when the next token is
-    // lexed, the indentation counter will be reset to 0.
     let comment_token = TokenKind::Comment(self.lex_comment()?);
 
-    // SAFETY: Consider using assertions instead, if this is expected to always be the case.
-    // But for clarity, (redundantly) manually reset it now:
+    // Reset the indentation counter immediately after reading a comment.
     self.indent_counter = 0;
 
     return Ok(Some(comment_token));
@@ -522,10 +519,8 @@ impl Lexer {
     }
   }
 
-  fn lex_next_token_kind(&mut self, current_char: char) -> diagnostic::Maybe<TokenKind> {
-    // SAFETY: The `current_char` variable is being used as a buffer to store the current character from the input sequence. This could cause bugs if the actual current character changes (for example, if `read_char` is called) but `current_char` is not updated accordingly.
-
-    let token_kind = match current_char {
+  fn lex_next_token_kind(&mut self, char: char) -> diagnostic::Maybe<TokenKind> {
+    let token_kind = match char {
       // REVIEW: Why is there an early return for string, but not for the other cases? Document why this is the case by adding a note.
       '"' => return Ok(TokenKind::String(self.lex_string()?)),
       '\'' => return Ok(TokenKind::Char(self.lex_character()?)),
@@ -617,7 +612,7 @@ impl Lexer {
       _ => {
         // If none of the symbols matched, first attempt to read an identifier.
         // Note that identifiers will never start with a digit.
-        return if current_char == '_' || Self::is_letter(current_char) {
+        return if char == '_' || Self::is_letter(char) {
           let identifier = self.lex_identifier();
 
           match Self::match_identifier(&identifier) {
@@ -626,14 +621,14 @@ impl Lexer {
           }
         }
         // Otherwise, attempt to read a number.
-        else if Self::is_digit(current_char) {
+        else if Self::is_digit(char) {
           let number_result = self.lex_number()?;
 
           Ok(TokenKind::Number(number_result.0, number_result.1))
         }
         // Finally, at this point the character is considered illegal.
         else {
-          let illegal_char = current_char;
+          let illegal_char = char;
 
           self.read_char();
 

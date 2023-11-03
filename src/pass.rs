@@ -120,9 +120,7 @@ impl Pass for SemanticCheckPass {
   }
 }
 
-pub struct LoweringPass {
-  module_qualifier: symbol_table::Qualifier,
-}
+pub struct LoweringPass;
 
 impl Pass for LoweringPass {
   fn get_info(&self) -> PassInfo {
@@ -142,10 +140,10 @@ impl Pass for LoweringPass {
     let universes = require_dependency!(&context.universes);
     let resolution_helper = resolution::ResolutionHelper::new(universes, symbol_table, type_env);
     let llvm_context = inkwell::context::Context::create();
-    let llvm_module = llvm_context.create_module(&self.module_qualifier.module_name);
+    let llvm_module = llvm_context.create_module(&module.qualifier.to_string());
 
     let mut lowering_context = lowering_ctx::LoweringContext::new(
-      self.module_qualifier.clone(),
+      module.qualifier.clone(),
       &symbol_table,
       &resolution_helper,
       &llvm_module,
@@ -154,7 +152,7 @@ impl Pass for LoweringPass {
     // FIXME: This doesn't apply to all cases; only used for tests.
     const ENTRY_POINT_NAME: &str = "tests";
 
-    // OPTIMIZE: Better way to find the entry point function rather then just searching for a function named `main` through all modules.
+    // OPTIMIZE: Better way to find the entry point function rather then just searching for a function named `main` through all modules O(m*n).
     let entry_point_opt = module.global_items.iter().find(|node| {
       if let ast::Item::Function(function) = node {
         function.name == ENTRY_POINT_NAME
@@ -163,10 +161,12 @@ impl Pass for LoweringPass {
       }
     });
 
-    // Visit the entry point function first, if it exists.
+    // TODO: If the package is not a library, then the entry point function should be required to exist.
+    // Only visit the entry point function.
     if let Some(entry_point) = &entry_point_opt {
       lowering_context.visit_item(entry_point);
     } else {
+      // FIXME: What if a module corresponds to a library or a package's module/file that has no entry point function? This needs to be updated to handle multiple modules per package.
       return PassResult::Err(vec![diagnostic::Diagnostic::MissingEntryPoint]);
     }
 
@@ -501,6 +501,7 @@ pub struct ExecutionContext<'a> {
   universes: Option<instantiation::TypeSchemes>,
   reverse_universe_tracker: Option<instantiation::ReverseUniverseTracker>,
   id_count: usize,
+  // FIXME: Should be removed and prefer only using a single module.
   main_package: &'a ast::Package,
   declarations: declare::DeclarationMap,
 }
@@ -589,15 +590,15 @@ impl<'a> PassManager<'a> {
     self.add_pass(Box::new(T::default()))
   }
 
-  pub fn add_primary_passes(&mut self, module_qualifier: symbol_table::Qualifier) {
+  pub fn add_primary_passes(&mut self) {
     self.add_default_pass::<DeclarePass>();
     self.add_default_pass::<LinkPass>();
     self.add_default_pass::<TypeInferencePass>();
-    self.add_pass(Box::new(LoweringPass { module_qualifier }));
+    self.add_pass(Box::new(LoweringPass));
   }
 
-  pub fn add_all_passes(&mut self, module_qualifier: symbol_table::Qualifier) {
-    self.add_primary_passes(module_qualifier);
+  pub fn add_all_passes(&mut self) {
+    self.add_primary_passes();
     self.add_default_pass::<SemanticCheckPass>();
     self.add_default_pass::<LifetimeAnalysisPass>();
   }

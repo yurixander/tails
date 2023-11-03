@@ -1,5 +1,5 @@
 use crate::{
-  ast, auxiliary, diagnostic, force_extract, instantiation, lowering, resolution, symbol_table,
+  assert_extract, ast, auxiliary, diagnostic, instantiation, lowering, resolution, symbol_table,
   types, visit,
 };
 
@@ -386,7 +386,7 @@ impl<'a> visit::Visitor for SemanticCheckContext<'a> {
       )
       .expect(auxiliary::BUG_MISSING_TYPE);
 
-    let tuple_type = force_extract!(tuple_general_type.as_ref(), types::Type::Tuple);
+    let tuple_type = assert_extract!(tuple_general_type.as_ref(), types::Type::Tuple);
 
     if tuple_indexing.index as usize >= tuple_type.0.len() {
       self

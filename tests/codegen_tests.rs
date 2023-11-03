@@ -46,7 +46,7 @@ mod tests {
     let test_package = tails::ast::Package::from([(qualifier.clone(), module)]);
     let mut pass_manager = pass::PassManager::new(&test_package);
 
-    pass_manager.add_all_passes(qualifier);
+    pass_manager.add_all_passes();
 
     let pass_manager_run_result = pass_manager.run(parser.get_id_count());
 
@@ -56,6 +56,14 @@ mod tests {
 
     if diagnostics_helper.contains_errors() {
       return Err(diagnostics_helper.diagnostics);
+    }
+
+    // Ensure that no pass has unmet dependencies.
+    for pass_result in &pass_manager_run_result.results {
+      assert!(
+        !matches!(pass_result.1, pass::PassResult::UnmetDependencies),
+        "no pass should have unmet dependencies"
+      );
     }
 
     let llvm_lowering_pass_result = pass_manager_run_result
@@ -271,6 +279,7 @@ mod tests {
     pointer_assignment,
     pointer_assignment_foreign,
     pointer_index,
+    pointer_index_unit,
     match_,
     reference,
     reference_object,

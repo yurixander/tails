@@ -205,10 +205,7 @@ fn build(base_path: &std::path::PathBuf) -> Result<String, Box<dyn std::error::E
 
   let mut pass_manager = tails::pass::PassManager::new(&modules);
 
-  // FIXME: The pass manager should not be needing a module qualifier to be passed in when adding all passes? It's because of the LLVM lowering pass. Need to change that a bit to make it work with many modules.
-  let temporary_module_qualifier = modules.keys().next().unwrap().clone();
-
-  pass_manager.add_all_passes(temporary_module_qualifier);
+  pass_manager.add_all_passes();
 
   let mut pass_results = pass_manager.run(0);
 

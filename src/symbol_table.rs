@@ -130,6 +130,12 @@ pub struct Qualifier {
   pub module_name: String,
 }
 
+impl ToString for Qualifier {
+  fn to_string(&self) -> String {
+    format!("{}.{}", self.package_name, self.module_name)
+  }
+}
+
 enum SymbolMetadataFlag {
   Inline,
 }

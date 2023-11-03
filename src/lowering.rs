@@ -17,7 +17,7 @@ use inkwell::{
 };
 
 use crate::{
-  ast, auxiliary, force_extract,
+  assert_extract, ast, auxiliary,
   lowering_ctx::{self, BUG_LLVM_VALUE, BUG_TYPE_NEVER_UNIT},
   resolution, symbol_table, types, visit,
 };
@@ -59,7 +59,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
     // CONSIDER: Breaking function apart, since it's getting too long and thus complex.
 
-    let union_variant = force_extract!(
+    let union_variant = assert_extract!(
       self
         .symbol_table
         .follow_link(&union_instance.path.link_id)
@@ -73,7 +73,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       .get(&union_variant.union_id)
       .expect(auxiliary::BUG_NAME_RESOLUTION);
 
-    let union = crate::force_extract!(union_item, symbol_table::RegistryItem::Union);
+    let union = crate::assert_extract!(union_item, symbol_table::RegistryItem::Union);
 
     // Lower types early on to avoid creating LLVM instructions if
     // any required type is unit, and thus would not evaluate to anything.
@@ -445,7 +445,6 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
 
     let base_expr_type = self.resolve_type_by_id(&object_access.base_expr_type_id);
 
-    // SAFETY: Any need to strip or resolve? If not, explain why.
     let object_type = match base_expr_type.as_ref() {
       types::Type::Object(object_type) => object_type,
       _ => unreachable!("{}", BUG_FIELD_MISSING),
@@ -621,7 +620,13 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     let llvm_parameter = self
       .llvm_function_buffer
       .expect(auxiliary::BUG_BUFFER_CONTRACT)
-      // SAFETY: What if the function is a foreign function with variadic arguments?
+      // NOTE: In the case that the function that owns this parameter
+      // is a foreign function with variadic parameters, then this
+      // parameter cannot be part of the variadic parameters, since
+      // it would need to be present in the AST to be processed as
+      // a parameter, and variadic parameters are all represented simply
+      // as a single flag in the signature, not actual parameter AST
+      // nodes.
       .get_nth_param(Self::assert_trunc_cast(parameter.position))
       // REVISE: Use `expect`.
       .unwrap();
@@ -1120,7 +1125,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       inkwell::values::InstructionOpcode::Trunc
     } else if let types::Type::Primitive(primitive_cast_type) = cast_type.as_ref() {
       // The operand type must be a primitive type as well.
-      let primitive_operand_type = force_extract!(operand_type.as_ref(), types::Type::Primitive);
+      let primitive_operand_type = assert_extract!(operand_type.as_ref(), types::Type::Primitive);
 
       // At this point, the cast is an upcast.
       match (primitive_operand_type, primitive_cast_type) {
@@ -1297,7 +1302,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
           .resolve_by_id(&unary_op.operand_type_id, self.universe_stack.clone())
           .expect(auxiliary::BUG_MISSING_TYPE);
 
-        let pointee_type = force_extract!(operand_type.as_ref(), types::Type::Pointer);
+        let pointee_type = assert_extract!(operand_type.as_ref(), types::Type::Pointer);
         let llvm_pointe_type = self.lower_type(&pointee_type)?;
 
         let llvm_pointer_value = self
@@ -1490,7 +1495,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       .into_owned();
 
     // BUG: (tag:closure-captures) When building an indirect call to a closure that has captures (and thus a capture environment), its signature/function type is lowered without the environment parameter. This causes internal LLVM issues and produces misleading LLVM errors, even module verification! The callee type must be modified and the capture environment be taken into account.
-    let callee_signature_type = force_extract!(callee_type, types::Type::Signature);
+    let callee_signature_type = assert_extract!(callee_type, types::Type::Signature);
 
     // CONSIDER: Breaking this down into separate helper functions.
     let llvm_call = if let Some(llvm_cached_monomorphic_fn) = llvm_cached_monomorphic_fn {
@@ -1816,7 +1821,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       .into_expr()
       .expect(auxiliary::BUG_REGISTRY_ITEM_MUST_BE_ITEM);
 
-    let current_closure = force_extract!(current_closure_expr, ast::Expr::Closure);
+    let current_closure = assert_extract!(current_closure_expr, ast::Expr::Closure);
 
     assert!(
       !current_closure.captures.is_empty(),
@@ -1864,7 +1869,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     pointer_indexing: &ast::PointerIndexing,
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
     let pointer_type = self.resolve_type_by_id(&pointer_indexing.type_id);
-    let pointee_type = force_extract!(pointer_type.as_ref(), types::Type::Pointer);
+    let pointee_type = assert_extract!(pointer_type.as_ref(), types::Type::Pointer);
 
     let llvm_pointee_type = self
       .lower_type(&pointee_type)

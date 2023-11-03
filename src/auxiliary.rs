@@ -1,7 +1,7 @@
 use crate::symbol_table;
 
 #[macro_export]
-macro_rules! force_extract {
+macro_rules! assert_extract {
   ($subject:expr, $path:path) => {
     match $subject {
       $path(inner) => inner,

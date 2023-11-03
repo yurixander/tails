@@ -1,4 +1,4 @@
-use crate::{ast, auxiliary, force_extract, resolution, symbol_table, types};
+use crate::{assert_extract, ast, auxiliary, resolution, symbol_table, types};
 
 pub type ConstraintSet = Vec<(resolution::UniverseStack, Constraint)>;
 
@@ -534,7 +534,7 @@ impl Infer<'_> for ast::UnionVariant {
       .get(&self.union_id)
       .expect(auxiliary::BUG_NAME_RESOLUTION);
 
-    let union = force_extract!(union_item, symbol_table::RegistryItem::Union);
+    let union = assert_extract!(union_item, symbol_table::RegistryItem::Union);
 
     context.finalize(types::Type::Union(std::rc::Rc::clone(union)))
   }
@@ -631,7 +631,7 @@ impl Infer<'_> for ast::UnionInstance {
     // BUG: Value type isn't constrained with anything for when the value is `String` or `Singleton` variant!
     todo!();
 
-    let union_variant = force_extract!(
+    let union_variant = assert_extract!(
       context
         .symbol_table
         .follow_link(&self.path.link_id)
@@ -639,7 +639,7 @@ impl Infer<'_> for ast::UnionInstance {
       symbol_table::RegistryItem::UnionVariant
     );
 
-    let union = force_extract!(
+    let union = assert_extract!(
       context
         .symbol_table
         .registry

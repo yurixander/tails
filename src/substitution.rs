@@ -1,7 +1,7 @@
 //! A helper module to be used exclusively by the unification module to
 //! substitute type variables.
 
-use crate::{force_extract, symbol_table, types};
+use crate::{assert_extract, symbol_table, types};
 
 #[derive(Debug)]
 pub(crate) enum SubstitutionError {
@@ -104,7 +104,7 @@ impl<'a> UnificationSubstitutionHelper<'a> {
       // SAFETY: Occurs check? Or that doesn't happen here, instead only on unification?
 
       if let Some(substitution) = self.substitution_env.get(&substitution_id) {
-        let substitution_object = force_extract!(substitution, types::Type::Object);
+        let substitution_object = assert_extract!(substitution, types::Type::Object);
 
         // REVIEW: Need to ensure that this logic is correct. If so, add some comments detailing what is happening.
         match substitution_object.kind {

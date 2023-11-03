@@ -122,7 +122,7 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
   /// ## Panics
   ///
   /// If the cast cannot succeed, then it is assumed that a logic bug is present, and
-  /// a panic will be issued. This assumption stems from relying on the parser to check
+  /// a panic will occur. This assumption stems from relying on the parser to check
   /// lengths or sizes of parsed elements or values before proceeding to subsequent
   /// passes.
   pub(crate) fn assert_trunc_cast<U, T: std::convert::TryFrom<U>>(value: U) -> T {

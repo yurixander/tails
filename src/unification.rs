@@ -8,7 +8,7 @@
 //! a call site to a polymorphic function) that can be retrieved by subsequent phases.
 
 use crate::{
-  diagnostic, force_extract, inference, instantiation, resolution, substitution, symbol_table,
+  assert_extract, diagnostic, inference, instantiation, resolution, substitution, symbol_table,
   types,
 };
 
@@ -53,7 +53,7 @@ impl<'a> TypeUnificationContext<'a> {
 
     // SAFETY: Will there ever be a case where substitution will need to be applied more than a single level of depth? If not, remove the recursive call.
     // Object types' substitutions can only be other object types.
-    self.substitute_object(force_extract!(substitution, types::Type::Object))
+    self.substitute_object(assert_extract!(substitution, types::Type::Object))
   }
 
   /// Recursively check if a type variable occurs within a type's substitution
