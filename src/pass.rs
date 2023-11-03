@@ -152,7 +152,7 @@ impl Pass for LoweringPass {
     );
 
     // FIXME: This doesn't apply to all cases; only used for tests.
-    const ENTRY_POINT_NAME: &str = "main";
+    const ENTRY_POINT_NAME: &str = "tests";
 
     // OPTIMIZE: Better way to find the entry point function rather then just searching for a function named `main` through all modules.
     let entry_point_opt = module.global_items.iter().find(|node| {
