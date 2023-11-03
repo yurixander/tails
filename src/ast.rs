@@ -126,7 +126,6 @@ pub struct Parameter {
 #[derive(Debug, Clone)]
 pub enum Expr {
   With(std::rc::Rc<With>),
-  Range(std::rc::Rc<Range>),
   CallSite(std::rc::Rc<CallSite>),
   BinaryOp(std::rc::Rc<BinaryOp>),
   UnaryOp(std::rc::Rc<UnaryOp>),

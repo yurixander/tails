@@ -1202,9 +1202,6 @@ impl Parser {
       lexer::TokenKind::Identifier(_) => {
         ast::Expr::Reference(std::rc::Rc::new(self.parse_reference()?))
       }
-      lexer::TokenKind::Number(..) if self.peek_is(&lexer::TokenKind::EllipsisShort) => {
-        ast::Expr::Range(std::rc::Rc::new(self.parse_range()?))
-      }
       lexer::TokenKind::Pass => {
         self.skip()?;
 
@@ -1817,35 +1814,6 @@ impl Parser {
     }
 
     Ok(generic_hints)
-  }
-
-  /// %int_literal '..' %int_literal
-  fn parse_range(&mut self) -> diagnostic::Maybe<ast::Range> {
-    let start = self.parse_number_literal()?;
-
-    self.skip_one(&lexer::TokenKind::EllipsisShort)?;
-
-    let end = self.parse_number_literal()?;
-
-    let (start, end) = match (start, end) {
-      (
-        ast::LiteralKind::Number {
-          value: start_value,
-          is_real: false,
-          ..
-        },
-        ast::LiteralKind::Number {
-          value: end_value,
-          is_real: false,
-          ..
-        },
-      ) => (start_value as u64, end_value as u64),
-      _ => {
-        return Err(self.expected("range bounds to be integer literals"));
-      }
-    };
-
-    Ok(ast::Range { start, end })
   }
 
   /// match %expr ':' %indent (%expr '=>' %expr)* '_' '=>' %expr %dedent

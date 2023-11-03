@@ -467,34 +467,48 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
       types::Type::Primitive(primitive_type) => self.lower_primitive_type(primitive_type),
       // SAFETY: Doesn't memory alignment have to be considered?
       // NOTE: Pointee type is irrelevant here; As of LLVM 15, all pointer types are opaque.
-      types::Type::Opaque => self.llvm_module.get_context().bool_type().ptr_type(inkwell::AddressSpace::default()).as_basic_type_enum(),
+      types::Type::Opaque => self
+        .llvm_module
+        .get_context()
+        .bool_type()
+        .ptr_type(inkwell::AddressSpace::default())
+        .as_basic_type_enum(),
       // NOTE: References are simply pointers in the context of lowering.
       types::Type::Pointer(pointee_type) | types::Type::Reference(pointee_type) => self
         .lower_type(&pointee_type)
-        .ptr_type(inkwell::AddressSpace::default()).as_basic_type_enum(),
+        .ptr_type(inkwell::AddressSpace::default())
+        .as_basic_type_enum(),
       // LLVM function types are not directly compatible with LLVM basic types.
       // This is because only functions themselves may hold function types. In
       // other words, no `alloca` can be made of type function. Instead, function
       // types are represented as pointers to function types elsewhere.
       types::Type::Signature(signature_type) =>
-        // FIXME: Temporarily passing no closure captures. NEED to take this into account!
-        self.lower_signature_type(signature_type, None)
+      // FIXME: Temporarily passing no closure captures. NEED to take this into account!
+      {
+        self
+          .lower_signature_type(signature_type, None)
           .ptr_type(inkwell::AddressSpace::default())
           .as_basic_type_enum()
-      ,
+      }
       types::Type::Tuple(types::TupleType(element_types)) => {
         let llvm_field_types = element_types
           .iter()
           .map(|element_type| self.lower_type(element_type))
           .collect::<Vec<_>>();
 
-        self.llvm_module.get_context().struct_type(&llvm_field_types, false).as_basic_type_enum()
+        self
+          .llvm_module
+          .get_context()
+          .struct_type(&llvm_field_types, false)
+          .as_basic_type_enum()
       }
-      types::Type::Stub(_) => unreachable!("stub type layers should have been stripped when the type being matched was resolved"),
+      types::Type::Stub(_) => unreachable!(
+        "stub type layers should have been stripped when the type being matched was resolved"
+      ),
       types::Type::Generic(..) => unreachable!("generic types should have been fully resolved"),
-      types::Type::Range(..)
-      // SAFETY: What about the case for hints? Is there use of hints over the type cache anywhere during lowering?
-      | types::Type::Variable { .. } => unreachable!("meta types should be present after the type unification phase")
+      types::Type::Range(..) | types::Type::Variable { .. } => {
+        unreachable!("meta types should not be present after the type unification phase")
+      }
     }
   }
 

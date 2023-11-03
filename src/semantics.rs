@@ -317,21 +317,6 @@ impl<'a> visit::Visitor for SemanticCheckContext<'a> {
     self.current_function_id = Some(closure.registry_id);
   }
 
-  fn visit_range(&mut self, range: &ast::Range) {
-    // NOTE: No need to check whether the range's bounds are constant
-    // expressions, as it is syntactically guaranteed by the parser.
-
-    // SAFETY: What if they're equal?
-    if range.start > range.end {
-      self
-        .diagnostics
-        .push(diagnostic::Diagnostic::RangeStartMustBeLessOrEqualToEnd(
-          range.start,
-          range.end,
-        ));
-    }
-  }
-
   fn visit_cast(&mut self, cast: &ast::Cast) {
     let operand_type = self
       .resolution_helper

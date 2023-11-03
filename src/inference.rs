@@ -350,7 +350,6 @@ pub(crate) trait Infer<'a> {
 impl Infer<'_> for ast::Expr {
   fn infer(&self, parent: &InferenceContext<'_>) -> InferenceResult {
     match self {
-      ast::Expr::Range(range) => parent.transient(range.as_ref()),
       ast::Expr::BinaryOp(binary_op) => parent.transient(binary_op.as_ref()),
       ast::Expr::CallSite(call_site) => parent.transient(call_site.as_ref()),
       ast::Expr::Cast(cast) => parent.transient(cast.as_ref()),

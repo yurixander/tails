@@ -135,7 +135,6 @@ pub trait Visitor<T = ()> {
   define_visit_fn!(visit_group, ast::Group);
   define_visit_fn!(visit_import, ast::Import);
   define_visit_fn!(visit_sizeof, ast::Sizeof);
-  define_visit_fn!(visit_range, ast::Range);
   define_visit_fn!(visit_type, types::Type);
   define_visit_fn!(visit_cast, ast::Cast);
   define_visit_fn!(visit_match, ast::Match);
@@ -249,7 +248,6 @@ impl Visitable for ast::Expr {
       ast::Expr::Match(match_) => match_.accept(visitor),
       ast::Expr::Block(block) => block.accept(visitor),
       ast::Expr::Resume(resume) => resume.accept(visitor),
-      ast::Expr::Range(range) => range.accept(visitor),
       ast::Expr::Sizeof(size_of) => size_of.accept(visitor),
       ast::Expr::PointerIndexing(pointer_indexing) => pointer_indexing.accept(visitor),
       ast::Expr::Tuple(tuple) => tuple.accept(visitor),
@@ -287,7 +285,6 @@ impl Visitable for ast::Expr {
       ast::Expr::Match(match_) => match_.traverse_children(visitor),
       ast::Expr::Block(block) => block.traverse_children(visitor),
       ast::Expr::Resume(resume) => resume.traverse_children(visitor),
-      ast::Expr::Range(range) => range.traverse_children(visitor),
       ast::Expr::Sizeof(size_of) => size_of.traverse_children(visitor),
       ast::Expr::PointerIndexing(pointer_indexing) => pointer_indexing.traverse_children(visitor),
       ast::Expr::Tuple(tuple) => tuple.traverse_children(visitor),
@@ -404,12 +401,6 @@ impl Visitable for ast::Statement {
     };
 
     inner_value_as_item.traverse(visitor);
-  }
-}
-
-impl Visitable for ast::Range {
-  fn accept<T>(&self, visitor: &mut dyn Visitor<T>) -> T {
-    visitor.visit_range(self)
   }
 }
 

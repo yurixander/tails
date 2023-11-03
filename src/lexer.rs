@@ -83,7 +83,6 @@ pub enum TokenKind {
   Inequality,
   FatArrow,
   EllipsisLong,
-  EllipsisShort,
   Sizeof,
   Pipe,
   Const,
@@ -102,7 +101,6 @@ pub enum TokenKind {
   Resume,
   SemiColon,
   Discard,
-  Assignment,
   VerticalBar,
   Pass,
   PercentSign,
@@ -542,11 +540,6 @@ impl Lexer {
 
         TokenKind::ColonDouble
       }
-      ':' if self.peek_char() == Some('=') => {
-        self.read_char();
-
-        TokenKind::Assignment
-      }
       ':' => TokenKind::Colon,
       '&' => TokenKind::Ampersand,
       ',' => TokenKind::Comma,
@@ -595,11 +588,6 @@ impl Lexer {
         self.read_char();
 
         TokenKind::EllipsisLong
-      }
-      '.' if self.peek_char() == Some('.') => {
-        self.read_char();
-
-        TokenKind::EllipsisShort
       }
       '.' => TokenKind::Dot,
       '@' => TokenKind::At,
