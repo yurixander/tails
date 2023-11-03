@@ -1,0 +1,3 @@
+func tests() -> unit:
+  let a: *unit = null
+  let b = unsafe: a[0::nat64]

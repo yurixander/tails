@@ -413,24 +413,20 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
   pub(crate) fn lower_union_variant_type(
     &self,
     kind: &ast::UnionVariantKind,
-  ) -> Option<inkwell::types::BasicTypeEnum<'llvm>> {
+  ) -> inkwell::types::BasicTypeEnum<'llvm> {
     match &kind {
       ast::UnionVariantKind::Type(tuple_type) => self.lower_type(&tuple_type),
-      ast::UnionVariantKind::Singleton { .. } => Some(
-        self
-          .llvm_module
-          .get_context()
-          .i64_type()
-          .as_basic_type_enum(),
-      ),
-      ast::UnionVariantKind::String(..) => Some(
-        self
-          .llvm_module
-          .get_context()
-          .i8_type()
-          .ptr_type(inkwell::AddressSpace::default())
-          .as_basic_type_enum(),
-      ),
+      ast::UnionVariantKind::Singleton { .. } => self
+        .llvm_module
+        .get_context()
+        .i64_type()
+        .as_basic_type_enum(),
+      ast::UnionVariantKind::String(..) => self
+        .llvm_module
+        .get_context()
+        .i8_type()
+        .ptr_type(inkwell::AddressSpace::default())
+        .as_basic_type_enum(),
     }
   }
 
@@ -465,45 +461,43 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
   ///
   /// If the type being lowered is unit, `None` will be returned. All other
   /// types will return a `Some` value.
-  pub(crate) fn lower_type(
-    &self,
-    ty: &types::Type,
-  ) -> Option<inkwell::types::BasicTypeEnum<'llvm>> {
+  pub(crate) fn lower_type(&self, ty: &types::Type) -> inkwell::types::BasicTypeEnum<'llvm> {
     // TODO: Accept a recursion limit parameter. Figure out how to fail in that case (cannot use panic). Would need to create a special failure/I.C.E. function in that case (that perhaps uses libc's abort).
 
     match self.resolve_type(ty).as_ref() {
       // REVIEW: Since now unit types DO lower to LLVM struct values, shouldn't it no longer return `Option`, but instead the actual lowered unit type, instead of it being a special case for parameters? This would be more consistent and avoid special treatment of parameters.
-      types::Type::Unit => None,
-      types::Type::Object(object_type) => Some(self.lower_object_type(object_type).as_basic_type_enum()),
-      types::Type::Union(union) => Some(self.lower_union_type(union)),
-      types::Type::Primitive(primitive_type) => Some(self.lower_primitive_type(primitive_type)),
+      // NOTE: Composite types that use `unit` directly will also
+      // short out to `None`, and that is expected. For example,
+      // `*unit`-type binding will not be lowered, and instead
+      // return `None`.
+      types::Type::Unit => self.make_llvm_unit_type().as_basic_type_enum(),
+      types::Type::Object(object_type) => self.lower_object_type(object_type).as_basic_type_enum(),
+      types::Type::Union(union) => self.lower_union_type(union),
+      types::Type::Primitive(primitive_type) => self.lower_primitive_type(primitive_type),
       // SAFETY: Doesn't memory alignment have to be considered?
       // NOTE: Pointee type is irrelevant here; As of LLVM 15, all pointer types are opaque.
-      types::Type::Opaque => Some(self.llvm_module.get_context().bool_type().ptr_type(inkwell::AddressSpace::default()).as_basic_type_enum()),
+      types::Type::Opaque => self.llvm_module.get_context().bool_type().ptr_type(inkwell::AddressSpace::default()).as_basic_type_enum(),
       // NOTE: References are simply pointers in the context of lowering.
       types::Type::Pointer(pointee_type) | types::Type::Reference(pointee_type) => self
         .lower_type(&pointee_type)
-        .map(|ty| ty.ptr_type(inkwell::AddressSpace::default())
-        .as_basic_type_enum()),
+        .ptr_type(inkwell::AddressSpace::default()).as_basic_type_enum(),
       // LLVM function types are not directly compatible with LLVM basic types.
       // This is because only functions themselves may hold function types. In
       // other words, no `alloca` can be made of type function. Instead, function
       // types are represented as pointers to function types elsewhere.
-      types::Type::Signature(signature_type) => Some(
+      types::Type::Signature(signature_type) =>
         // FIXME: Temporarily passing no closure captures. NEED to take this into account!
         self.lower_signature_type(signature_type, None)
           .ptr_type(inkwell::AddressSpace::default())
           .as_basic_type_enum()
-      ),
+      ,
       types::Type::Tuple(types::TupleType(element_types)) => {
         let llvm_field_types = element_types
           .iter()
           .map(|element_type| self.lower_type(element_type))
-          // FIXME: Temporarily flattening without checks.
-          .flatten()
           .collect::<Vec<_>>();
 
-        Some(self.llvm_module.get_context().struct_type(&llvm_field_types, false).as_basic_type_enum())
+        self.llvm_module.get_context().struct_type(&llvm_field_types, false).as_basic_type_enum()
       }
       types::Type::Stub(_) => unreachable!("stub type layers should have been stripped when the type being matched was resolved"),
       types::Type::Generic(..) => unreachable!("generic types should have been fully resolved"),
@@ -560,11 +554,7 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
     let llvm_field_types = object_type
       .fields
       .iter()
-      .map(|field| {
-        self
-          .lower_type(&field.1)
-          .unwrap_or_else(|| self.make_llvm_unit_type().as_basic_type_enum())
-      })
+      .map(|field| self.lower_type(&field.1))
       .collect::<Vec<_>>();
 
     // TODO: Named global LLVM struct types are required for recursive types. Thus, consider defaulting to named global struct types. Currently, all struct types are inlined.
@@ -584,11 +574,17 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
   pub(crate) fn lower_type_by_id(
     &self,
     type_id: &symbol_table::TypeId,
-  ) -> Option<inkwell::types::BasicTypeEnum<'llvm>> {
+  ) -> inkwell::types::BasicTypeEnum<'llvm> {
     self.lower_type(&self.resolve_type_by_id(type_id))
   }
 
+  /// Create a dummy placeholder zero-sized type for representing
+  /// the `unit` type in LLVM IR. LLVM is good at optimizing away
+  /// zero-sized types, so this is a good way to represent the `unit`
+  /// type.
   pub(crate) fn make_llvm_unit_type(&self) -> inkwell::types::PointerType<'llvm> {
+    // REVIEW: This needs to be reviewed in depth, and checked to see whether it clashes with the `unit` type and the fact some lowering functions return `None` when their input type is `unit`. This could easily be a source of logic bugs. Add comments and explanations outlining exactly where and why this is used.
+
     self
       .llvm_module
       .get_context()
@@ -597,6 +593,8 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
   }
 
   pub(crate) fn make_llvm_unit_value(&self) -> inkwell::values::PointerValue<'llvm> {
+    // REVIEW: This needs to be reviewed in depth, and checked to see whether it clashes with the `unit` type and the fact some lowering functions return `None`. This could easily be a source of logic bugs. Add comments and explanations outlining exactly where and why this is used.
+
     self.make_llvm_unit_type().const_null()
   }
 
@@ -611,12 +609,7 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
     let mut llvm_parameter_types = signature_type
       .parameter_types
       .iter()
-      .map(|parameter_type| {
-        self
-          .lower_type(&parameter_type)
-          .unwrap_or_else(|| self.make_llvm_unit_type().as_basic_type_enum())
-          .into()
-      })
+      .map(|parameter_type| self.lower_type(&parameter_type).into())
       .collect::<Vec<_>>();
 
     // If the signature includes closure captures, the signature type must be modified
@@ -629,22 +622,28 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
           .create_captures_env_type(&closure_captures)
           .into_pointer_type();
 
-        let llvm_captures_env_type = self
-          .lower_type(&captures_env_type)
-          .expect(BUG_TYPE_NEVER_UNIT);
+        let llvm_captures_env_type = self.lower_type(&captures_env_type);
 
         llvm_parameter_types.push(llvm_captures_env_type.into());
       }
     }
 
-    if let Some(llvm_return_type) = self.lower_type(&signature_type.return_type) {
-      return llvm_return_type.fn_type(
+    let resolved_return_type = self.resolve_type(&signature_type.return_type);
+    let is_unit_return_type = resolved_return_type.is_a_unit();
+
+    // Special case for signature types: If the return type is unit, then
+    // the LLVM function type should return `void` instead of the dummy
+    // LLVM struct type that represents the `unit` type.
+    if is_unit_return_type {
+      return self.llvm_module.get_context().void_type().fn_type(
         llvm_parameter_types.as_slice(),
         signature_type.arity_mode.is_variadic(),
       );
     }
 
-    self.llvm_module.get_context().void_type().fn_type(
+    let llvm_return_type = self.lower_type(&signature_type.return_type);
+
+    llvm_return_type.fn_type(
       llvm_parameter_types.as_slice(),
       signature_type.arity_mode.is_variadic(),
     )
@@ -1130,9 +1129,7 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
     &mut self,
     captures: &[ast::ClosureCapture],
   ) -> inkwell::values::PointerValue<'llvm> {
-    let llvm_capture_env_type = self
-      .lower_type(&self.create_captures_env_type(&captures))
-      .expect(BUG_TYPE_NEVER_UNIT);
+    let llvm_capture_env_type = self.lower_type(&self.create_captures_env_type(&captures));
 
     let llvm_capture_env = self
       .llvm_builder

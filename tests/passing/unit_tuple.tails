@@ -1,0 +1,7 @@
+func b(x: _) -> unit:
+  pass
+
+func tests() -> unit:
+  let a: (unit) = (pass,)
+
+  b(a)

@@ -2052,7 +2052,7 @@ impl Parser {
     Ok(ast::Resume { condition })
   }
 
-  /// '[' %node ']'
+  /// '[' %expr ']'
   fn parse_pointer_indexing(
     &mut self,
     pointer: ast::Expr,

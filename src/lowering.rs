@@ -75,11 +75,8 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
 
     let union = crate::assert_extract!(union_item, symbol_table::RegistryItem::Union);
 
-    // Lower types early on to avoid creating LLVM instructions if
-    // any required type is unit, and thus would not evaluate to anything.
-    let llvm_union_type = self.lower_type(&types::Type::Union(std::rc::Rc::clone(&union)))?;
-    let llvm_variant_type = self.lower_union_variant_type(&union_variant.kind)?;
-
+    let llvm_variant_type = self.lower_union_variant_type(&union_variant.kind);
+    let llvm_union_type = self.lower_type(&types::Type::Union(std::rc::Rc::clone(&union)));
     let llvm_base_alloca = self.alloca(llvm_union_type, "union.instance.alloca");
     let llvm_context = self.llvm_module.get_context();
 
@@ -170,10 +167,6 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     &mut self,
     tuple_indexing: &ast::TupleIndex,
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
-    // Lower types early on to avoid creating LLVM instructions if
-    // the resulting value won't evaluate regardless.
-    let llvm_field_type = self.lower_type_by_id(&tuple_indexing.type_id)?;
-
     // TODO: Assert `tuple_indexing.indexed_tuple` is an LLVM struct type.
 
     let llvm_struct_ptr = self
@@ -185,6 +178,8 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       )
       .expect(lowering_ctx::BUG_LLVM_VALUE)
       .into_pointer_value();
+
+    let llvm_field_type = self.lower_type_by_id(&tuple_indexing.type_id);
 
     let llvm_field_gep = self
       .llvm_builder
@@ -230,7 +225,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
 
   fn visit_tuple(&mut self, tuple: &ast::Tuple) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
     // If the tuple's type is unit, do not proceed to allocate it.
-    let llvm_struct_type = self.lower_type_by_id(&tuple.type_id)?.into_struct_type();
+    let llvm_struct_type = self.lower_type_by_id(&tuple.type_id).into_struct_type();
 
     let llvm_struct_alloca = self.alloca(llvm_struct_type, "tuple.alloca");
 
@@ -292,7 +287,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     let llvm_context = self.llvm_module.get_context();
     let llvm_after_block = llvm_context.append_basic_block(llvm_function_buffer, "match.after");
     let llvm_type = self.lower_type_by_id(&match_.type_id);
-    let llvm_value_alloca = llvm_type.map(|llvm_type| self.alloca(llvm_type, "match.value"));
+    let llvm_value_alloca = self.alloca(llvm_type, "match.value");
 
     let llvm_bridge_blocks = match_
       .arms
@@ -355,12 +350,10 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
 
       // If the comparison holds true, assign the final value of this match
       // expression to the value of the this case branch.
-      if let Some(llvm_value_alloca) = llvm_value_alloca {
-        self
-          .llvm_builder
-          .build_store(llvm_value_alloca, llvm_then_value)
-          .expect(BUG_BUILDER_UNSET);
-      }
+      self
+        .llvm_builder
+        .build_store(llvm_value_alloca, llvm_then_value)
+        .expect(BUG_BUILDER_UNSET);
 
       self
         .llvm_builder
@@ -372,17 +365,12 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
 
     self.llvm_builder.position_at_end(llvm_after_block);
 
-    // REVISE: Prefer a built-in method alternative instead of using `join_two`. Then, delete the `join_two` utility function.
-    auxiliary::join_two_opts(&llvm_type, &llvm_value_alloca).map(
-      |(llvm_type, llvm_value_alloca)| {
-        // NOTE: LLVM value clones are cheap.
-        self.access_if_mode_applies(
-          llvm_type.to_owned(),
-          llvm_value_alloca.to_owned(),
-          "match.value",
-        )
-      },
-    )
+    // NOTE: LLVM value clones are cheap.
+    Some(self.access_if_mode_applies(
+      llvm_type.to_owned(),
+      llvm_value_alloca.to_owned(),
+      "match.value",
+    ))
   }
 
   fn visit_statement(
@@ -412,20 +400,16 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     &mut self,
     sizeof: &ast::Sizeof,
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
-    // Unit types have a size of zero. If they are pointers, or any other
-    // wrapper types, they are no longer considered unit types. This is
-    // because even pointer types have a size.
-    Some(match self.lower_type(&sizeof.ty) {
-      // REVISE: Use `expect` instead, and specify reasoning.
-      Some(ty) => ty.size_of().unwrap().as_basic_value_enum(),
-      // If the type is unit, then the size is zero.
-      None => self
-        .llvm_module
-        .get_context()
-        .i32_type()
-        .const_zero()
-        .as_basic_value_enum(),
-    })
+    // NOTE: Unit types have a size of zero. If they are pointers, or any
+    // other composite types, they are no longer considered unit types.
+    // This is because even pointer types have a size.
+    let llvm_size = self
+      .lower_type(&sizeof.ty)
+      .size_of()
+      .unwrap()
+      .as_basic_value_enum();
+
+    Some(llvm_size)
   }
 
   fn visit_group(&mut self, group: &ast::Group) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
@@ -469,11 +453,8 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
         .get(&object_access.field_name)
         .expect(BUG_FIELD_MISSING);
 
-      let llvm_field_type = self.lower_type(target_field_type)?;
-
-      let llvm_struct_type = self
-        .lower_type(&types::Type::Object(object_type.to_owned()))
-        .expect(BUG_TYPE_NEVER_UNIT);
+      let llvm_field_type = self.lower_type(target_field_type);
+      let llvm_struct_type = self.lower_type(&types::Type::Object(object_type.to_owned()));
 
       let llvm_field_gep = self
         .llvm_builder
@@ -513,10 +494,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     &mut self,
     object: &ast::Object,
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
-    let llvm_struct_type = self
-      .lower_type_by_id(&object.type_id)
-      .expect(lowering_ctx::BUG_TYPE_NEVER_UNIT)
-      .into_struct_type();
+    let llvm_struct_type = self.lower_type_by_id(&object.type_id).into_struct_type();
 
     let llvm_struct_alloca = self.alloca(llvm_struct_type, "object.alloca");
 
@@ -583,9 +561,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     &mut self,
     foreign_var: &ast::ForeignStatic,
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
-    // If the type is unit, nothing should be emitted.
-    let llvm_type = self.lower_type(&foreign_var.ty)?;
-
+    let llvm_type = self.lower_type(&foreign_var.ty);
     let memoization_key = (self.access_mode, foreign_var.registry_id);
 
     if let Some(llvm_cached_value) = self.llvm_value_memoization.get(&memoization_key) {
@@ -970,12 +946,9 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     let ty = self.resolve_type_by_id(&if_.type_id);
     let llvm_type = self.lower_type(&ty);
 
-    // Allocate the resulting if-value early on, if applicable.
-    // The allocation will not occur if the type is unit.
-    if let Some(llvm_if_value_type) = llvm_type {
-      // FIXME: Why is the value being allocated in some cases where the type of the if is `Unit`? See test `binding`.
-      llvm_yield_value_alloca = Some(self.alloca(llvm_if_value_type, "if.value"));
-    }
+    // Allocate the resulting if-value early on.
+    // FIXME: Why is the value being allocated in some cases where the type of the if is `Unit`? See test `binding`.
+    llvm_yield_value_alloca = Some(self.alloca(llvm_type, "if.value"));
 
     let llvm_context = self.llvm_module.get_context();
     let llvm_after_block = llvm_context.append_basic_block(llvm_current_function, "if.after");
@@ -1044,8 +1017,8 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
 
     // If an expression is to be yielded, it must be accessed. A pointer
     // shouldn't be yielded. This will peel the pointer layer of the if-value alloca.
-    llvm_yield_value_alloca.and_then(|llvm_yield_value_alloca| {
-      llvm_type.map(|ty| self.force_access(ty, llvm_yield_value_alloca, "if.value"))
+    llvm_yield_value_alloca.map(|llvm_yield_value_alloca| {
+      self.force_access(llvm_type, llvm_yield_value_alloca, "if.value")
     })
   }
 
@@ -1106,10 +1079,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       .lower_with_access_mode(&cast.operand, lowering_ctx::AccessMode::Value)
       .expect(lowering_ctx::BUG_LLVM_VALUE);
 
-    let llvm_cast_type = self
-      .lower_type(&cast.cast_type)
-      .expect(lowering_ctx::BUG_TYPE_NEVER_UNIT);
-
+    let llvm_cast_type = self.lower_type(&cast.cast_type);
     let operand_type = self.resolve_type_by_id(&cast.operand_type_id);
     let cast_type = self.resolve_type_by_id(&cast.type_id);
 
@@ -1303,7 +1273,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
           .expect(auxiliary::BUG_MISSING_TYPE);
 
         let pointee_type = assert_extract!(operand_type.as_ref(), types::Type::Pointer);
-        let llvm_pointe_type = self.lower_type(&pointee_type)?;
+        let llvm_pointe_type = self.lower_type(&pointee_type);
 
         let llvm_pointer_value = self
           .lower_with_access_mode(&unary_op.operand, lowering_ctx::AccessMode::None)
@@ -1356,7 +1326,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     // The value type must not be unit in order to continue,
     // otherwise the value will never evaluate, so there is
     // nothing to allocate for the binding.
-    let llvm_value_type = self.lower_type(&value_type)?;
+    let llvm_value_type = self.lower_type(&value_type);
 
     let llvm_value = self
       .visit_expr(&binding.value)
@@ -1809,9 +1779,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     &mut self,
     closure_capture: &ast::ClosureCapture,
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
-    let llvm_capture_type = self
-      .lower_type_by_id(&closure_capture.type_id)
-      .unwrap_or_else(|| self.make_llvm_unit_type().as_basic_type_enum());
+    let llvm_capture_type = self.lower_type_by_id(&closure_capture.type_id);
 
     let current_closure_expr = self
       .symbol_table
@@ -1843,9 +1811,8 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     // NOTE: This is only being created as the `build_struct_gep`
     // instruction requires a type; the captures environment is not
     // actually being allocated here.
-    let llvm_captures_env_type = self
-      .lower_type(&self.create_captures_env_type(&current_closure.captures))
-      .expect(BUG_TYPE_NEVER_UNIT);
+    let llvm_captures_env_type =
+      self.lower_type(&self.create_captures_env_type(&current_closure.captures));
 
     let llvm_capture = self
       .llvm_builder
@@ -1870,13 +1837,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
     let pointer_type = self.resolve_type_by_id(&pointer_indexing.type_id);
     let pointee_type = assert_extract!(pointer_type.as_ref(), types::Type::Pointer);
-
-    let llvm_pointee_type = self
-      .lower_type(&pointee_type)
-      // SAFETY: Although this is true, what if the type was actually specified by the user?
-      // The pointee type can never be unit; unit has no size, and therefore cannot
-      // be allocated.
-      .expect(lowering_ctx::BUG_TYPE_NEVER_UNIT);
+    let llvm_pointee_type = self.lower_type(&pointee_type);
 
     let llvm_pointer = self
       // SAFETY: Ensure this is the proper way to lower pointer indexing. Is it truly redundant?
@@ -1946,15 +1907,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     }
 
     let memoization_key = (self.access_mode, constant.registry_id);
-
-    let llvm_type = match self.lower_type(&constant.ty) {
-      Some(llvm_type) => llvm_type,
-      None => {
-        self.llvm_value_memoization.insert(memoization_key, None);
-
-        return None;
-      }
-    };
+    let llvm_type = self.lower_type(&constant.ty);
 
     if let Some(llvm_cached_value) = self.llvm_value_memoization.get(&memoization_key) {
       return llvm_cached_value.map(|llvm_cached_value| {
