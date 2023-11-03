@@ -25,17 +25,21 @@ guard.continuation2:                              ; preds = %guard.continuation1
   br i1 false, label %guard.continuation3, label %guard.failure4
 
 guard.continuation3:                              ; preds = %guard.continuation2
-  %access.dereference_op = load i32, ptr null, align 4
+  %access.dereference_op = load ptr, ptr null, align 8
   br i1 false, label %guard.continuation7, label %guard.failure4
 
-guard.failure4:                                   ; preds = %guard.continuation3, %guard.continuation2
+guard.failure4:                                   ; preds = %guard.continuation7, %guard.continuation3, %guard.continuation2
   %guard.puts5 = call i32 @puts(ptr @guard.message.1)
   %guard.note.puts6 = call i32 @puts(ptr @guard.note.message)
   call void @abort()
   unreachable
 
 guard.continuation7:                              ; preds = %guard.continuation3
-  %access.dereference_op8 = load float, ptr null, align 4
+  %access.dereference_op8 = load i32, ptr null, align 4
+  br i1 false, label %guard.continuation9, label %guard.failure4
+
+guard.continuation9:                              ; preds = %guard.continuation7
+  %access.dereference_op10 = load float, ptr null, align 4
   ret void
 }
 

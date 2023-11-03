@@ -10,6 +10,7 @@ fn.entry:
   store ptr @string_literal, ptr %object.alloca.field.gep, align 8
   %object.field.gep = getelementptr inbounds { ptr }, ptr %object.alloca, i32 0, i32 0
   %object.field.gep1 = getelementptr inbounds { ptr }, ptr %object.alloca, i32 0, i32 0
-  %access.object.field.access = load ptr, ptr %object.field.gep1, align 8
+  %object.field.gep2 = getelementptr inbounds { ptr }, ptr %object.alloca, i32 0, i32 0
+  %access.object.field.access = load ptr, ptr %object.field.gep2, align 8
   ret void
 }

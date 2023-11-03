@@ -103,13 +103,13 @@ pub enum TokenKind {
   SemiColon,
   Discard,
   Assignment,
-  StarAssign,
   VerticalBar,
   Pass,
   PercentSign,
   Default,
   Uses,
   Raise,
+  Write,
 }
 
 pub struct Lexer {
@@ -185,6 +185,7 @@ impl Lexer {
       "default" => TokenKind::Default,
       "uses" => TokenKind::Uses,
       "raise" => TokenKind::Raise,
+      "write" => TokenKind::Write,
       _ => return None,
     })
   }
@@ -556,11 +557,6 @@ impl Lexer {
         TokenKind::Arrow
       }
       '-' => TokenKind::Minus,
-      '*' if self.peek_char() == Some('=') => {
-        self.read_char();
-
-        TokenKind::StarAssign
-      }
       '*' => TokenKind::Asterisk,
       '/' => TokenKind::Slash,
       '!' if self.peek_char() == Some('=') => {

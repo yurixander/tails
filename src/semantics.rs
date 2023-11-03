@@ -83,7 +83,7 @@ impl<'a> SemanticCheckContext<'a> {
   /// only the given node directly.
   pub fn requires_unsafe_context(&self, expr: &ast::Expr) -> Option<bool> {
     match expr {
-      ast::Expr::PointerAssignment(_) | ast::Expr::PointerIndexing(_) => Some(true),
+      ast::Expr::PointerIndexing(_) => Some(true),
       ast::Expr::UnaryOp(unary_op) if unary_op.operator == ast::UnaryOperator::Dereference => {
         Some(true)
       }

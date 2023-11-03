@@ -11,6 +11,17 @@ fn.entry:
 
 if.after:                                         ; preds = %if.then, %if.else
   %access.if.value = load i32, ptr %if.value, align 4
+  br i1 true, label %if.then2, label %if.after1
+
+if.else:                                          ; preds = %fn.entry
+  store i32 1, ptr %if.value, align 4
+  br label %if.after
+
+if.then:                                          ; preds = %fn.entry
+  store i32 1, ptr %if.value, align 4
+  br label %if.after
+
+if.after1:                                        ; preds = %if.after, %if.then2
   call void @tests_binding.id(i32 1)
   call void @tests_binding.id(i32 1)
   call void @tests_binding.id(i32 2)
@@ -26,13 +37,8 @@ if.after:                                         ; preds = %if.then, %if.else
   call void @tests_binding.id.2(ptr null)
   ret void
 
-if.else:                                          ; preds = %fn.entry
-  store i32 1, ptr %if.value, align 4
-  br label %if.after
-
-if.then:                                          ; preds = %fn.entry
-  store i32 1, ptr %if.value, align 4
-  br label %if.after
+if.then2:                                         ; preds = %if.after
+  br label %if.after1
 }
 
 define private i32 @tests_binding.closure() {

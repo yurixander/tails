@@ -1,4 +1,5 @@
 func tests() -> unit:
   let a = null::*int
 
-  discard unsafe: a *= 1
+  unsafe:
+    write a, 1

@@ -109,7 +109,7 @@ pub trait Visitor<T = ()> {
   }
 
   define_visit_fn!(visit_module, ast::Module);
-  define_visit_fn!(visit_nothing, ast::Pass);
+  define_visit_fn!(visit_pass, ast::Pass);
   define_visit_fn!(visit_function, ast::Function);
   define_visit_fn!(visit_literal, ast::Literal);
   define_visit_fn!(visit_unsafe, ast::Unsafe);
@@ -194,6 +194,7 @@ impl Visitable for ast::Item {
       ast::Item::Import(import) => import.accept(visitor),
       ast::Item::Effect(effect) => effect.accept(visitor),
       ast::Item::ForeignFunction(foreign_function) => foreign_function.accept(visitor),
+      ast::Item::PointerAssignment(pointer_assignment) => pointer_assignment.accept(visitor),
     }
   }
 
@@ -222,6 +223,9 @@ impl Visitable for ast::Item {
       ast::Item::ClosureCapture(closure_capture) => closure_capture.traverse_children(visitor),
       ast::Item::Import(import) => import.traverse_children(visitor),
       ast::Item::Effect(effect) => effect.traverse_children(visitor),
+      ast::Item::PointerAssignment(pointer_assignment) => {
+        pointer_assignment.traverse_children(visitor)
+      }
     }
   }
 }
@@ -248,7 +252,6 @@ impl Visitable for ast::Expr {
       ast::Expr::Range(range) => range.accept(visitor),
       ast::Expr::Sizeof(size_of) => size_of.accept(visitor),
       ast::Expr::PointerIndexing(pointer_indexing) => pointer_indexing.accept(visitor),
-      ast::Expr::PointerAssignment(pointer_assignment) => pointer_assignment.accept(visitor),
       ast::Expr::Tuple(tuple) => tuple.accept(visitor),
       ast::Expr::ObjectAccess(object_access) => object_access.accept(visitor),
       ast::Expr::TupleIndexing(tuple_indexing) => tuple_indexing.accept(visitor),
@@ -268,9 +271,6 @@ impl Visitable for ast::Expr {
 
   fn traverse_children<T>(&self, visitor: &mut dyn Visitor<T>) {
     match self {
-      ast::Expr::PointerAssignment(pointer_assignment) => {
-        pointer_assignment.traverse_children(visitor)
-      }
       ast::Expr::BinaryOp(binary_op) => binary_op.traverse_children(visitor),
       ast::Expr::UnaryOp(unary_op) => unary_op.traverse_children(visitor),
       ast::Expr::Literal(literal) => literal.traverse_children(visitor),
@@ -326,7 +326,7 @@ impl Visitable for ast::ForeignCluster {
 
 impl Visitable for ast::Pass {
   fn accept<T>(&self, visitor: &mut dyn Visitor<T>) -> T {
-    visitor.visit_nothing(self)
+    visitor.visit_pass(self)
   }
 }
 
@@ -398,6 +398,9 @@ impl Visitable for ast::Statement {
       }
       ast::Statement::Binding(binding) => ast::Item::Binding(binding.clone()),
       ast::Statement::Constant(constant) => ast::Item::Constant(constant.clone()),
+      ast::Statement::PointerAssignment(pointer_assignment) => {
+        ast::Item::PointerAssignment(pointer_assignment.clone())
+      }
     };
 
     inner_value_as_item.traverse(visitor);

@@ -143,7 +143,6 @@ pub enum Expr {
   Resume(std::rc::Rc<Resume>),
   Discard(std::rc::Rc<Discard>),
   PointerIndexing(std::rc::Rc<PointerIndexing>),
-  PointerAssignment(std::rc::Rc<PointerAssignment>),
   // REVISE: This should not be an Rc; `Pass` is an empty struct. In fact, it may even be left out entirely (as `Item::Pass`).
   Pass(std::rc::Rc<Pass>),
   Reference(std::rc::Rc<Reference>),
@@ -243,6 +242,7 @@ pub enum Item {
   Effect(std::rc::Rc<Effect>),
   ForeignCluster(std::rc::Rc<ForeignCluster>),
   Constant(std::rc::Rc<Constant>),
+  PointerAssignment(std::rc::Rc<PointerAssignment>),
 }
 
 impl Item {
@@ -605,6 +605,7 @@ pub struct If {
 pub enum Statement {
   Binding(std::rc::Rc<Binding>),
   Constant(std::rc::Rc<Constant>),
+  PointerAssignment(std::rc::Rc<PointerAssignment>),
   InlineExpr(Expr),
 }
 

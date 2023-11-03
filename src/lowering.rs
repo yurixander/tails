@@ -18,7 +18,7 @@ use inkwell::{
 
 use crate::{
   assert_extract, ast, auxiliary,
-  lowering_ctx::{self, BUG_LLVM_VALUE, BUG_TYPE_NEVER_UNIT},
+  lowering_ctx::{self, BUG_LLVM_VALUE},
   resolution, symbol_table, types, visit,
 };
 
@@ -382,6 +382,9 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       ast::Statement::InlineExpr(inline_expr) => self.visit_expr(inline_expr),
       ast::Statement::Binding(binding) => self.visit_item(&ast::Item::Binding(binding.clone())),
       ast::Statement::Constant(constant) => self.visit_item(&ast::Item::Constant(constant.clone())),
+      ast::Statement::PointerAssignment(pointer_assignment) => {
+        self.visit_item(&ast::Item::PointerAssignment(pointer_assignment.clone()))
+      }
     };
 
     None
@@ -393,7 +396,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
     self.visit_expr(&discard.0);
 
-    None
+    Some(self.make_llvm_unit_value().as_basic_value_enum())
   }
 
   fn visit_sizeof(
@@ -588,11 +591,6 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     &mut self,
     parameter: &ast::Parameter,
   ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
-    // If the parameter's type is unit, nothing should be emitted.
-    if self.resolve_type_by_id(&parameter.type_id).is_a_unit() {
-      return None;
-    }
-
     let llvm_parameter = self
       .llvm_function_buffer
       .expect(auxiliary::BUG_BUFFER_CONTRACT)
@@ -942,13 +940,19 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       .llvm_function_buffer
       .expect(auxiliary::BUG_BUFFER_CONTRACT);
 
-    let mut llvm_yield_value_alloca = None;
     let ty = self.resolve_type_by_id(&if_.type_id);
     let llvm_type = self.lower_type(&ty);
 
-    // Allocate the resulting if-value early on.
-    // FIXME: Why is the value being allocated in some cases where the type of the if is `Unit`? See test `binding`.
-    llvm_yield_value_alloca = Some(self.alloca(llvm_type, "if.value"));
+    // If the `if` expression will not yield a value, then there
+    // is no need to create a yield value LLVM alloca instruction.
+    // This is a special case to reduce the complexity of the lowering
+    // for the `if` construct, other constructs will not have special
+    // cases for the unit type.
+    let llvm_yield_value_alloca = if !ty.is_a_unit() {
+      Some(self.alloca(llvm_type, "if.value"))
+    } else {
+      None
+    };
 
     let llvm_context = self.llvm_module.get_context();
     let llvm_after_block = llvm_context.append_basic_block(llvm_current_function, "if.after");
@@ -1015,11 +1019,19 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     // Leave the after block as current for further processing.
     self.llvm_builder.position_at_end(llvm_after_block);
 
-    // If an expression is to be yielded, it must be accessed. A pointer
-    // shouldn't be yielded. This will peel the pointer layer of the if-value alloca.
-    llvm_yield_value_alloca.map(|llvm_yield_value_alloca| {
-      self.force_access(llvm_type, llvm_yield_value_alloca, "if.value")
-    })
+    Some(
+      // If an expression is to be yielded, it must be accessed. A pointer
+      // shouldn't be yielded. This will peel the pointer layer of the
+      // if-value alloca. Furthermore, if the yield value alloca is `None`,
+      // then it means that the `if` expression's type is unit, and thus no value
+      // should be yielded. However, the `unit` type is still represented
+      // as a dummy zero-sized struct type, so that must be returned.
+      if let Some(llvm_yield_value_alloca) = llvm_yield_value_alloca {
+        self.force_access(llvm_type, llvm_yield_value_alloca, "if.value")
+      } else {
+        self.make_llvm_unit_value().as_basic_value_enum()
+      },
+    )
   }
 
   fn visit_foreign_function(
@@ -1307,6 +1319,10 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
         self.force_access(llvm_pointe_type, llvm_pointer_value, "dereference_op")
       }
     })
+  }
+
+  fn visit_pass(&mut self, _pass: &ast::Pass) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
+    Some(self.make_llvm_unit_value().as_basic_value_enum())
   }
 
   fn visit_binding(

@@ -4,7 +4,6 @@ use crate::{
 };
 use inkwell::{types::BasicType, values::BasicValue};
 
-pub(crate) const BUG_TYPE_NEVER_UNIT: &str = "type should never be unit";
 pub(crate) const BUG_LLVM_VALUE: &str = "should always yield an LLVM value";
 
 const BUG_INSTANTIATION: &str =
@@ -458,18 +457,10 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
   /// Lower the given type into its corresponding LLVM basic type.
   ///
   /// No caching or memoization will be performed.
-  ///
-  /// If the type being lowered is unit, `None` will be returned. All other
-  /// types will return a `Some` value.
   pub(crate) fn lower_type(&self, ty: &types::Type) -> inkwell::types::BasicTypeEnum<'llvm> {
     // TODO: Accept a recursion limit parameter. Figure out how to fail in that case (cannot use panic). Would need to create a special failure/I.C.E. function in that case (that perhaps uses libc's abort).
 
     match self.resolve_type(ty).as_ref() {
-      // REVIEW: Since now unit types DO lower to LLVM struct values, shouldn't it no longer return `Option`, but instead the actual lowered unit type, instead of it being a special case for parameters? This would be more consistent and avoid special treatment of parameters.
-      // NOTE: Composite types that use `unit` directly will also
-      // short out to `None`, and that is expected. For example,
-      // `*unit`-type binding will not be lowered, and instead
-      // return `None`.
       types::Type::Unit => self.make_llvm_unit_type().as_basic_type_enum(),
       types::Type::Object(object_type) => self.lower_object_type(object_type).as_basic_type_enum(),
       types::Type::Union(union) => self.lower_union_type(union),
@@ -583,8 +574,7 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
   /// zero-sized types, so this is a good way to represent the `unit`
   /// type.
   pub(crate) fn make_llvm_unit_type(&self) -> inkwell::types::PointerType<'llvm> {
-    // REVIEW: This needs to be reviewed in depth, and checked to see whether it clashes with the `unit` type and the fact some lowering functions return `None` when their input type is `unit`. This could easily be a source of logic bugs. Add comments and explanations outlining exactly where and why this is used.
-
+    // NOTE: This represents a zero-sized type.
     self
       .llvm_module
       .get_context()
@@ -593,8 +583,6 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
   }
 
   pub(crate) fn make_llvm_unit_value(&self) -> inkwell::values::PointerValue<'llvm> {
-    // REVIEW: This needs to be reviewed in depth, and checked to see whether it clashes with the `unit` type and the fact some lowering functions return `None`. This could easily be a source of logic bugs. Add comments and explanations outlining exactly where and why this is used.
-
     self.make_llvm_unit_type().const_null()
   }
 

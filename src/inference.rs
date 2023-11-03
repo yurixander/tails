@@ -350,9 +350,6 @@ pub(crate) trait Infer<'a> {
 impl Infer<'_> for ast::Expr {
   fn infer(&self, parent: &InferenceContext<'_>) -> InferenceResult {
     match self {
-      ast::Expr::PointerAssignment(pointer_assignment) => {
-        parent.transient(pointer_assignment.as_ref())
-      }
       ast::Expr::Range(range) => parent.transient(range.as_ref()),
       ast::Expr::BinaryOp(binary_op) => parent.transient(binary_op.as_ref()),
       ast::Expr::CallSite(call_site) => parent.transient(call_site.as_ref()),
@@ -399,6 +396,9 @@ impl Infer<'_> for ast::Item {
       ast::Item::ForeignCluster(foreign_cluster) => parent.transient(foreign_cluster.as_ref()),
       ast::Item::ForeignFunction(foreign_function) => parent.transient(foreign_function.as_ref()),
       ast::Item::Parameter(parameter) => parent.transient(parameter.as_ref()),
+      ast::Item::PointerAssignment(pointer_assignment) => {
+        parent.transient(pointer_assignment.as_ref())
+      }
       // TODO: Handle inference of effect constructs.
       ast::Item::Effect(effect) => todo!(),
     }
@@ -717,6 +717,9 @@ impl Infer<'_> for ast::Statement {
       ast::Statement::Binding(binding) => context.visit(binding.as_ref()),
       ast::Statement::Constant(constant) => context.visit(constant.as_ref()),
       ast::Statement::InlineExpr(expr) => context.visit(expr),
+      ast::Statement::PointerAssignment(pointer_assignment) => {
+        context.visit(pointer_assignment.as_ref())
+      }
     };
 
     context.finalize(types::Type::Unit)

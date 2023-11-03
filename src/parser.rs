@@ -390,6 +390,9 @@ impl Parser {
       lexer::TokenKind::Const => {
         ast::Statement::Constant(std::rc::Rc::new(self.parse_constant(true)?))
       }
+      lexer::TokenKind::Write => {
+        ast::Statement::PointerAssignment(std::rc::Rc::new(self.parse_pointer_assignment()?))
+      }
       _ => ast::Statement::InlineExpr(self.parse_expr()?),
     };
 
@@ -415,8 +418,8 @@ impl Parser {
     self.skip_one(&lexer::TokenKind::Indent)?;
 
     loop {
-      if let Some(last_statement) = last_statement_opt {
-        statements.push(std::rc::Rc::new(last_statement));
+      if let Some(previous_statement) = last_statement_opt {
+        statements.push(std::rc::Rc::new(previous_statement));
       }
 
       last_statement_opt = Some(self.parse_statement()?);
@@ -1136,8 +1139,6 @@ impl Parser {
         // Pointer indexing.
         | lexer::TokenKind::BracketL
         | lexer::TokenKind::As
-        // Pointer assignment.
-        | lexer::TokenKind::StarAssign
         | lexer::TokenKind::Pipe
         | lexer::TokenKind::With
     )
@@ -1150,7 +1151,7 @@ impl Parser {
   /// if a period is present after an expression, the expression is upgraded to
   /// an object access item.
   fn try_promote(&mut self, mut expr: ast::Expr) -> diagnostic::Maybe<ast::Expr> {
-    // BUG: Things that are on the next line may be parsed as part of the promotion chain.
+    // BUG: Things that are on the next line may be parsed as part of the promotion chain. This also seems to be the case for JavaScript. Perhaps this could be overlooked? If so, it needs to be documented.
     // Promote the item to a chain, if applicable.
     while self.is_promotion_chain() {
       expr = match self.get_token()? {
@@ -1174,9 +1175,6 @@ impl Parser {
         }
         lexer::TokenKind::BracketL => {
           ast::Expr::PointerIndexing(std::rc::Rc::new(self.parse_pointer_indexing(expr)?))
-        }
-        lexer::TokenKind::StarAssign => {
-          ast::Expr::PointerAssignment(std::rc::Rc::new(self.parse_pointer_assignment(expr)?))
         }
         lexer::TokenKind::With => ast::Expr::With(std::rc::Rc::new(self.parse_with(expr)?)),
         _ => unreachable!("all tokens that indicate promotion should have been handled"),
@@ -2070,12 +2068,13 @@ impl Parser {
     })
   }
 
-  /// '*=' %expr
-  fn parse_pointer_assignment(
-    &mut self,
-    pointer: ast::Expr,
-  ) -> diagnostic::Maybe<ast::PointerAssignment> {
-    self.skip_one(&lexer::TokenKind::StarAssign)?;
+  /// write %expr ',' %expr
+  fn parse_pointer_assignment(&mut self) -> diagnostic::Maybe<ast::PointerAssignment> {
+    self.skip_one(&lexer::TokenKind::Write)?;
+
+    let pointer = self.parse_expr()?;
+
+    self.skip_one(&lexer::TokenKind::Comma)?;
 
     let value = self.parse_expr()?;
 

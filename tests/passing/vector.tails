@@ -20,7 +20,8 @@ func get(vector: Vec, index: nat64) -> Element:
 
 func set(vector: Vec, index: nat64, value: Element) -> bool:
   if index < vector.length:
-    unsafe: vector.pointer[index] *= value
+    unsafe:
+      write vector.pointer[index], value
 
     true
   else:
