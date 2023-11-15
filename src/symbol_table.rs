@@ -225,7 +225,6 @@ pub struct SymbolTable {
   /// from id to the target node is because then the target node would need to
   /// be repeated per referential id.
   pub(crate) links: std::collections::HashMap<LinkId, RegistryId>,
-  // CONSIDER: Some things that should be saved (ex. `SumTypeVariant`) are not to be nodes themselves. Consider having an exclusive enum for possible cached declarations, then implementing a `From` or `Into` trait to convert between node and such trait. With this approach we don't have to implement all kinds of stuff like dispatch entry, and so on. Needs research however, might not be possible or not what it seems.
   /// A hash map containing unique declaration ids to their corresponding AST nodes.
   ///
   /// This is used for direct access to declarations or other reference-able nodes,

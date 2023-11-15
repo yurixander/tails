@@ -308,7 +308,9 @@ mod tests {
     // recursion_direct,
     recursion_mutual,
     recursion_trio,
-    lex_unicode_string
+    lex_unicode_string,
+    // REVISE: Better and more specific name for this test. It was related to the logic bug that would cause the unsafe flag to be false after leaving an unsafe scope, meaning that nested unsafe scopes may lead into issues (ie. if there's an unsafe action after a nested unsafe scope).
+    semantics_unsafe_edge_case
   );
 
   define_failing_tests!(

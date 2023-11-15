@@ -6,6 +6,7 @@ use crate::{
 pub struct SemanticCheckContext<'a> {
   universe_stack: resolution::UniverseStack,
   in_unsafe_scope: bool,
+  in_unsafe_scope_stack: Vec<bool>,
   current_function_id: Option<symbol_table::RegistryId>,
   symbol_table: &'a symbol_table::SymbolTable,
   function_id_stack: Vec<Option<symbol_table::RegistryId>>,
@@ -22,6 +23,7 @@ impl<'a> SemanticCheckContext<'a> {
       diagnostics: Vec::new(),
       symbol_table,
       in_unsafe_scope: false,
+      in_unsafe_scope_stack: Vec::new(),
       current_function_id: None,
       universe_stack: resolution::UniverseStack::new(),
       function_id_stack: Vec::new(),
@@ -151,8 +153,10 @@ impl<'a> visit::Visitor for SemanticCheckContext<'a> {
         self.pop_function_id();
       }
       ast::Expr::Unsafe(_) => {
-        // TODO: Might need to use a stack or buffer because of the possibility of nested unsafe expressions? Might also consider to disallow nested unsafe exprs entirely via errors.
-        self.in_unsafe_scope = false;
+        // After exiting an unsafe scope, the unsafe scope flag must be
+        // restored to its previous value.
+        self.in_unsafe_scope = self.in_unsafe_scope_stack.pop()
+          .expect("previous unsafe flag should have been pushed onto the stack when visiting an unsafe expression")
       }
       _ => {}
     }
@@ -271,8 +275,7 @@ impl<'a> visit::Visitor for SemanticCheckContext<'a> {
         .push(diagnostic::Diagnostic::ConditionOrValueIsConstant);
     }
 
-    // CONSIDER: To avoid problems with nested cases, save a buffer here, then restore? Maybe there's no need to restore the flag with its previous buffer in this specific case.
-    // TODO: Add a test case to see if a case with nested unsafe blocks would cause problems.
+    self.in_unsafe_scope_stack.push(self.in_unsafe_scope);
     self.in_unsafe_scope = true;
   }
 

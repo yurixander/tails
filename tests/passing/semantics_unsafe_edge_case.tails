@@ -1,0 +1,9 @@
+func tests() -> unit:
+  let ptr = null::*int
+
+  unsafe:
+    unsafe: pass
+
+    let a = *ptr
+
+  pass

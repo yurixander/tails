@@ -87,8 +87,6 @@ pub trait Visitor<T = ()> {
     result
   }
 
-  // CONSIDER: A "visit_referenceable" special visitation method for nodes with ids, that provides the id as part of the arguments.
-
   // FIXME: Some nodes will never reach this point, namely those that aren't in the form of `ast::Node` in the AST.
   // CONSIDER: Getting rid of this method, since the `visit` method will always be called and can be used instead. This method just adds complexity for a slight organizational benefit.
   fn enter_item(&mut self, _item: &ast::Item) {

@@ -13,8 +13,6 @@ use crate::{
 /// comparing codegen tests.
 pub type ObjectFieldMap = std::collections::BTreeMap<String, Type>;
 
-// CONSIDER: An unification trait that is implemented per trait (with parameters `other` of the same type). This trait would compare both values for equality. This can then be used as part of the unification process, AND as a standalone method in subsequent passes (thus eliminating the need to create the overhead necessary to simply compare two types for equality).
-
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum ObjectKind {
   /// The object is open and can be extended.
@@ -101,7 +99,7 @@ impl StubType {
     symbol_table: &symbol_table::SymbolTable,
   ) -> Result<Type, TypeStripError> {
     // TODO: Use this function as part of the `substitute` method. To be able to do this, make this function part of `Type`'s implementation.
-    // CONSIDER: Use reference to avoid taking ownership of `self`.
+    // OPTIMIZE: Use reference to avoid taking ownership of `self`.
 
     let mut current = self;
     let mut seen_stub_types = std::collections::HashSet::new();
@@ -317,7 +315,6 @@ pub(crate) enum DirectRecursionCheckError {
   SymbolTableMissingEntry,
 }
 
-// CONSIDER: Implementing the `Display` trait, and thus gaining the ability to convert types down to unique strings. Then, using strings it can easily be compared for equality among types, without the need for unification. Unification post-type phases is redundant either way; there are no type variables to solve!
 #[derive(Clone, Debug)]
 pub enum Type {
   Union(std::rc::Rc<ast::Union>),
@@ -488,7 +485,7 @@ impl Type {
     }
   }
 
-  // CONSIDER: Add a `find_substitution_id` helper function that will perform abstract operations on substitute-able types, such as type variables and `typeof` types. For example, it would re-perform the unification operation with its substitution if it is bound, and also perform occurs checks. This would standardize the process of substitution.
+  // CONSIDER: Add a `find_substitution_id` helper function (or trait) that will perform abstract operations on substitute-able types, such as type variables and `typeof` types. For example, it would re-perform the unification operation with its substitution if it is bound, and also perform occurs checks. This would standardize the process of substitution.
 }
 
 impl From<SignatureType> for Type {
