@@ -1413,8 +1413,6 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       _ => None,
     };
 
-    let mut llvm_cached_monomorphic_fn = None::<inkwell::values::FunctionValue<'llvm>>;
-
     let own_universe_stack = resolution::push_to_universe_stack(
       self.universe_stack.clone(),
       call_site.universe_id.to_owned(),
@@ -1436,43 +1434,14 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
         .collect::<Vec<_>>()
     };
 
-    // If the callee is a function that is cached on the monomorphism
-    // cache, attempt to retrieve a matching entry, if it exists.
-    if let Some(callee_function) = callee_function {
-      if let Some(llvm_cached_monomorphism) =
-        self.find_memoized_monomorphism(&callee_function.registry_id, &argument_types)
-      {
-        assert!(
-          callee_function.is_polymorphic(),
-          "all functions in the monomorphism cache should be polymorphic"
-        );
-
-        llvm_cached_monomorphic_fn = Some(llvm_cached_monomorphism)
-      }
-    }
-
-    // If no cached monomorphism was found, attempt to instantiate the callee
-    // if it is a polymorphic function.
-    let llvm_monomorphic_fn = if llvm_cached_monomorphic_fn.is_none() {
-      callee_function.and_then(|callee_function| {
-        if callee_function.is_polymorphic() {
-          let monomorphic_function = self
-            .lower_artifact(
-              call_site.universe_id.to_owned(),
-              &ast::Item::Function(std::rc::Rc::clone(callee_function)),
-            )
-            .expect(BUG_LLVM_VALUE)
-            .as_any_value_enum()
-            .into_function_value();
-
-          Some(monomorphic_function)
-        } else {
-          None
-        }
-      })
-    } else {
-      None
-    };
+    let llvm_monomorphic_function = callee_function.and_then(|callee| {
+      self.try_lower_possibly_polymorphic_callee(
+        &call_site.universe_id,
+        &callee.registry_id,
+        callee,
+        &argument_types,
+      )
+    });
 
     let callee_type = self
       .resolve_type_by_id(&call_site.callee_type_id)
@@ -1481,28 +1450,10 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     // BUG: (tag:closure-captures) When building an indirect call to a closure that has captures (and thus a capture environment), its signature/function type is lowered without the environment parameter. This causes internal LLVM issues and produces misleading LLVM errors, even module verification! The callee type must be modified and the capture environment be taken into account.
     let callee_signature_type = assert_extract!(callee_type, types::Type::Signature);
 
-    // CONSIDER: Breaking this down into separate helper functions.
-    let llvm_call = if let Some(llvm_cached_monomorphic_fn) = llvm_cached_monomorphic_fn {
+    let llvm_call = if let Some(llvm_monomorphic_function) = llvm_monomorphic_function {
       self
         .llvm_builder
-        .build_direct_call(
-          llvm_cached_monomorphic_fn,
-          llvm_arguments.as_slice(),
-          "call.monomorphism.memo",
-        )
-        .expect(BUG_BUILDER_UNSET)
-        .try_as_basic_value()
-        .left()
-    } else if let Some(llvm_monomorphic_fn) = llvm_monomorphic_fn {
-      self.memoize_monomorphic_fn(
-        callee.get_registry_id(),
-        argument_types,
-        llvm_monomorphic_fn,
-      );
-
-      self
-        .llvm_builder
-        .build_direct_call(llvm_monomorphic_fn, llvm_arguments.as_slice(), "call")
+        .build_direct_call(llvm_monomorphic_function, llvm_arguments.as_slice(), "call")
         .expect(BUG_BUILDER_UNSET)
         .try_as_basic_value()
         .left()

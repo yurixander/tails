@@ -343,8 +343,14 @@ impl Pass for LinkPass {
 
       diagnostic_helper.add_many(link_ctx.diagnostics);
 
-      // CONSIDER: Performing a check to ensure that there are no existing duplicates (assertion check?).
-      symbol_table.links.extend(link_ctx.links);
+      for (link_id, link) in link_ctx.links {
+        assert!(
+          !symbol_table.links.contains_key(&link_id),
+          "links should not be declared twice"
+        );
+
+        symbol_table.links.insert(link_id, link);
+      }
     }
 
     context.call_graph = Some(Self::create_call_graph(&symbol_table));

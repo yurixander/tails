@@ -205,7 +205,6 @@ impl Parser {
 
     vec![diagnostic::Diagnostic::ExpectedButGotToken(
       expected.to_string(),
-      // CONSIDER: Implementing proper `to_string` for `TokenKind`. Only do this if it is needed/used in multiple places.
       actual_string,
     )]
   }
@@ -834,7 +833,6 @@ impl Parser {
 
   /// {%function | %foreign_function | %foreign_var | %type_def | %enum | %type_class}
   fn parse_item(&mut self) -> diagnostic::Maybe<ast::Item> {
-    // CONSIDER: Why not move this check into the `get()` method?
     if self.is_at_last_token_or_past() {
       return Err(self.expected("top-level construct"));
     }
@@ -2033,11 +2031,18 @@ mod tests {
   const TEST_TOKEN_2: lexer::Token = lexer::Token(lexer::TokenKind::And, 1);
 
   fn create_parser(tokens: &[lexer::TokenKind]) -> Parser {
-    // CONSIDER: Making the position incremental.
+    let mut position = 0;
+
     Parser::new(
       tokens
         .into_iter()
-        .map(|token| lexer::Token(token.to_owned(), 0))
+        .map(|token| {
+          let result = lexer::Token(token.to_owned(), position);
+
+          position += 1;
+
+          result
+        })
         .collect(),
     )
   }

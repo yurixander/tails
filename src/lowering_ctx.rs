@@ -2,7 +2,10 @@ use crate::{
   ast, auxiliary, inference, instantiation, lowering, resolution, symbol_table, types, unification,
   visit::Visitor,
 };
-use inkwell::{types::BasicType, values::BasicValue};
+use inkwell::{
+  types::BasicType,
+  values::{AnyValue, BasicValue},
+};
 
 pub(crate) const BUG_LLVM_VALUE: &str = "should always yield an LLVM value";
 
@@ -689,19 +692,11 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
     }
   }
 
-  /// Given a polymorphic function, this function will attempt to specialize
-  /// the function, substituting the generic parameter types. The resulting
-  /// function is a *monomorphism* (or *monomorphic function*), which is a
-  /// function whose generic parameters have been instantiated with concrete
+  /// Given a polymorphic item, this function will attempt to specialize
+  /// the item, substituting the generic parameter types. The result
+  /// is a *monomorphism* (or *monomorphic item*), which is an item
+  /// whose generic parameters have been instantiated with concrete
   /// types.
-  ///
-  /// If the given function is not polymorphic, or if there is a discrepancy
-  /// in the amount of generic and specialized parameters, this function will
-  /// return `None`, indicating that the function could not be specialized.
-  ///
-  /// If the same monomorphism has already been created, this function will
-  /// return the memoized monomorphism. In other words, memoization is taken
-  /// into account by this function.
   pub(crate) fn lower_artifact(
     &mut self,
     artifact_id: symbol_table::UniverseId,
@@ -725,6 +720,46 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
     self.universe_stack = previous_universe_stack;
 
     llvm_value
+  }
+
+  pub(crate) fn try_lower_possibly_polymorphic_callee(
+    &mut self,
+    call_site_universe_id: &symbol_table::UniverseId,
+    callee_registry_id: &symbol_table::RegistryId,
+    callee: &std::rc::Rc<ast::Function>,
+    argument_types: &[types::Type],
+  ) -> Option<inkwell::values::FunctionValue<'llvm>> {
+    if let Some(llvm_cached_monomorphism) =
+      self.find_memoized_monomorphism(&callee.registry_id, &argument_types)
+    {
+      assert!(
+        callee.is_polymorphic(),
+        "all functions in the monomorphism cache should be polymorphic"
+      );
+
+      return Some(llvm_cached_monomorphism);
+    }
+
+    if callee.is_polymorphic() {
+      let llvm_monomorphic_function = self
+        .lower_artifact(
+          call_site_universe_id.to_owned(),
+          &ast::Item::Function(std::rc::Rc::clone(callee)),
+        )
+        .expect(BUG_LLVM_VALUE)
+        .as_any_value_enum()
+        .into_function_value();
+
+      self.memoize_monomorphic_fn(
+        callee_registry_id.to_owned(),
+        argument_types.to_owned(),
+        llvm_monomorphic_function,
+      );
+
+      Some(llvm_monomorphic_function)
+    } else {
+      None
+    }
   }
 
   /// Memoize a global string pointer literal.
