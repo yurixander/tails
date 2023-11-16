@@ -103,7 +103,7 @@ impl Pass for SemanticCheckPass {
     let mut semantic_check_ctx =
       semantics::SemanticCheckContext::new(&symbol_table, &resolution_helper);
 
-    // REVISE: Use the provided unit node instead. This will also get rid of the dependence on the module map from the context's fields.
+    // REVISE: Use the provided module instead. This will also get rid of the dependence on the module map from the context's fields.
     for global_item in &module.global_items {
       visit::traverse_possibly_polymorphic_global_item(
         global_item,
@@ -143,7 +143,8 @@ impl Pass for LoweringPass {
       &symbol_table,
       &resolution_helper,
       &llvm_module,
-    );
+    )
+    .expect("a new, empty LLVM module should be valid");
 
     // FIXME: This doesn't apply to all cases; only used for tests.
     const ENTRY_POINT_NAME: &str = "tests";
@@ -369,7 +370,7 @@ impl TypeInferencePass {
     let mut reverse_universe_tracker = instantiation::ReverseUniverseTracker::new();
 
     for (artifact_id, artifact) in &symbol_table.artifacts {
-      // REVISE: Simplify nesting and usage of if/else if possible.
+      // REVISE: Simplify nesting and usage of if/else if possible. Or, simply abstract to their own functions.
       let registry_id = if let instantiation::Artifact::CallSite(call_site) = artifact {
         // BUG: This needs to be done after type checking and semantic analysis, otherwise stripping callee may fail due to the fact that the assumptions don't hold true before type checking and possibly semantic analysis. There's another problem, however: If this is done after type checking, since type checking phase and instantiation phase is not yet equipped to handle recursive calls, it would go into a stack overflow for recursive calls. Need to figure out how to properly position+handle the creation of the call graph.
         let callee = call_site.strip_callee(symbol_table).unwrap();

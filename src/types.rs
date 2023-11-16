@@ -345,6 +345,21 @@ pub enum Type {
 }
 
 impl Type {
+  pub(crate) fn contains_generic_types(
+    &self,
+    symbol_table: &symbol_table::SymbolTable,
+  ) -> Result<bool, TypeStripError> {
+    for inner_type_result in self.get_indirect_subtree_iter(symbol_table) {
+      let inner_type = inner_type_result?;
+
+      if inner_type.is_a_generic() {
+        return Ok(true);
+      }
+    }
+
+    Ok(false)
+  }
+
   /// Check that a given type does not contain nested recursion in its subtree.
   /// This checks for singular, or direct recursion, but will not identify mutual
   /// recursion, as more complicated considerations and possibly multiple contexts

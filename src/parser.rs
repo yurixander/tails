@@ -1722,8 +1722,6 @@ impl Parser {
 
   /// '(' %expr ')'
   fn parse_group(&mut self, expr: ast::Expr) -> diagnostic::Maybe<ast::Group> {
-    // REVISE: No longer independent, because the left parentheses is parsed when disambiguation occurs. Should be independent.
-
     self.skip_one(&lexer::TokenKind::ParenthesesR)?;
 
     Ok(ast::Group(expr))
@@ -1835,8 +1833,6 @@ impl Parser {
 
   /// '(' (%expr ',')* ')'
   fn parse_tuple(&mut self, first_element_opt: Option<ast::Expr>) -> diagnostic::Maybe<ast::Tuple> {
-    // REVISE: No longer independent because of disambiguation phase. Should be independent.
-
     // Skip the comma left during disambiguation.
     // This comma will not be present when parsing enum variants.
     if self.is(&lexer::TokenKind::Comma) {

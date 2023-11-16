@@ -1786,8 +1786,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
         closure_capture.index,
         &format!("closure.capture.{}", closure_capture.name),
       )
-      // REVISE: Use `expect`, and provide a reason why.
-      .unwrap();
+      .expect("index should be within bounds, and the type should be a struct type");
 
     // TODO: Compare against lowering of parameter to ensure nothing's missing. At least by assertions.
 

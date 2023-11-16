@@ -168,7 +168,7 @@ impl Expr {
     }
   }
 
-  // CONSIDER: Getting rid of this. It's only used once (for statements).
+  // CONSIDER: Getting rid of this. It's only used once (for statements). Or at least, relocating it.
   /// Attempt to find the type id of the item.
   ///
   /// This function examines the node after stripping transient

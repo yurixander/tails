@@ -157,7 +157,7 @@ impl<'a> TypeUnificationContext<'a> {
     for (id, ty) in partial_type_env {
       let substitution = match substitution_helper.substitute(ty) {
         Ok(substitution) => substitution,
-        // REVISE: Don't just return this error; add it to the diagnostics helper, and return the diagnostics helper.
+        // REVISE: Don't just return this error; add it to the diagnostics helper, and return the diagnostics helper. This way, multiple diagnostics are aggregated.
         Err(substitution::SubstitutionError::TypeStripError(types::TypeStripError::RecursionDetected)) => return Err(vec![diagnostic::Diagnostic::RecursiveType(ty.to_owned())]),
         // This would constitute a logic bug in where the name resolution pass
         // did not properly fill in all entries.

@@ -65,7 +65,7 @@ fn compile_and_link_llvm_ir(
     );
   }
 
-  // CONSIDER: Making this configurable.
+  // TODO: Make this configurable.
   // Run the system linker to link the object file into an executable.
   let linker_output = std::process::Command::new("gcc")
     .current_dir(base_path)

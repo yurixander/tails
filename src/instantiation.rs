@@ -91,7 +91,16 @@ impl<'a> InstantiationHelper<'a> {
     type_b: types::Type,
     symbol_table: &symbol_table::SymbolTable,
   ) -> bool {
-    // REVIEW: Won't this be possibly shallow? Since it cannot resolve generic types, etc. without a universe stack? If so, consider changing return type to `Result`.
+    // Both input types should be fully monomorphic, otherwise
+    // instantiation would be needed to unify them properly.
+    if type_a.is_a_generic()
+      || type_b.is_a_generic()
+      // FIXME: Properly handle results.
+      || type_a.contains_generic_types(symbol_table).unwrap()
+      || type_b.contains_generic_types(symbol_table).unwrap()
+    {
+      return false;
+    }
 
     let universes = TypeSchemes::new();
 

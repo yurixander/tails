@@ -149,15 +149,13 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
     symbol_table: &'a symbol_table::SymbolTable,
     resolution_helper: &'a resolution::ResolutionHelper<'a>,
     llvm_module: &'a inkwell::module::Module<'llvm>,
-  ) -> Self {
-    // CONSIDER: Returning a `Result` instead of panicking, since the LLVM module is GIVEN, and this function should be blind to outside state? Currently it assumes that if a given LLVM module is bad, it constitutes a logic bug.
+  ) -> Result<Self, &'static str> {
     // Ensure that the given LLVM module is valid.
-    assert!(
-      llvm_module.verify().is_ok(),
-      "the given LLVM module should be valid"
-    );
+    if !llvm_module.verify().is_ok() {
+      return Err("the given LLVM module is invalid");
+    }
 
-    Self {
+    Ok(Self {
       qualifier,
       symbol_table,
       llvm_module,
@@ -171,7 +169,7 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
       interned_string_literals: std::collections::HashMap::new(),
       runtime_guards_failure_buffers: std::collections::HashMap::new(),
       universe_stack: resolution::UniverseStack::new(),
-    }
+    })
   }
 
   pub(crate) fn memoize_monomorphic_fn(
@@ -708,8 +706,6 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
     let mut temporary_universe_stack = self.universe_stack.clone();
 
     temporary_universe_stack.push(artifact_id);
-
-    // CONSIDER: (tag:poly-memoization) Move monomorphism memoization logic here? Or would that violate the separation of concerns principle?
     self.universe_stack = temporary_universe_stack;
 
     let llvm_value = self.visit_item(item);
