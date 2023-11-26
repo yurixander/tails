@@ -212,7 +212,6 @@ mod tests {
     closure_self_call,
     closure_return,
     constant,
-    effect_simple,
     // factorial,
     // fibonacci,
     foreign,

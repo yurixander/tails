@@ -14,36 +14,6 @@ pub struct Module {
   pub global_items: Vec<Item>,
 }
 
-#[derive(Debug)]
-pub struct Resume {
-  pub condition: Expr,
-}
-
-#[derive(Debug)]
-pub struct Effect {
-  pub name: String,
-  pub signature: Signature,
-}
-
-#[derive(Debug)]
-pub struct EffectHandler {
-  pub name: String,
-  pub closure: Closure,
-}
-
-#[derive(Debug)]
-pub struct Try {
-  pub expr: Expr,
-  pub handlers: Vec<EffectHandler>,
-  pub default: Option<EffectHandler>,
-}
-
-#[derive(Debug)]
-pub struct Raise {
-  pub effect_name: String,
-  pub arguments: Vec<Expr>,
-}
-
 #[derive(Debug, Clone)]
 pub enum UnionVariantKind {
   String(String),
@@ -138,8 +108,6 @@ pub enum Expr {
   Match(std::rc::Rc<Match>),
   Tuple(std::rc::Rc<Tuple>),
   TupleIndexing(std::rc::Rc<TupleIndex>),
-  Try(std::rc::Rc<Try>),
-  Resume(std::rc::Rc<Resume>),
   Discard(std::rc::Rc<Discard>),
   PointerIndexing(std::rc::Rc<PointerIndexing>),
   // REVISE: This should not be an Rc; `Pass` is an empty struct. In fact, it may even be left out entirely (as `Item::Pass`).
@@ -238,7 +206,6 @@ pub enum Item {
   Import(std::rc::Rc<Import>),
   Union(std::rc::Rc<Union>),
   UnionVariant(std::rc::Rc<UnionVariant>),
-  Effect(std::rc::Rc<Effect>),
   ForeignCluster(std::rc::Rc<ForeignCluster>),
   Constant(std::rc::Rc<Constant>),
   PointerAssignment(std::rc::Rc<PointerAssignment>),
@@ -309,7 +276,6 @@ impl TryFrom<Item> for symbol_table::RegistryItem {
       Item::ForeignFunction(foreign_function) => {
         symbol_table::RegistryItem::ForeignFunction(foreign_function.clone())
       }
-      // TODO: Effect.
       _ => return Err(()),
     })
   }
@@ -482,7 +448,6 @@ pub enum SignatureKind {
   Function,
   ForeignFunction,
   InstanceMethod(Parameter),
-  Effect,
 }
 
 #[derive(Debug)]
@@ -498,7 +463,6 @@ pub struct Signature {
   pub is_variadic: bool,
   pub kind: SignatureKind,
   pub return_type_id: symbol_table::TypeId,
-  pub effects_used: Vec<String>,
 }
 
 impl Signature {

@@ -13,7 +13,6 @@ pub(crate) type LlvmSize = u32;
 pub enum SignatureParserInvoker {
   Function,
   ForeignFunction,
-  Effect,
 }
 
 pub struct Parser {
@@ -662,7 +661,7 @@ impl Parser {
     })
   }
 
-  /// '(' {%parameter* (,)} (+) ')' '->' %type (uses (%string ',')+)?
+  /// '(' {%parameter* (,)} (+) ')' '->' %type
   fn parse_signature(
     &mut self,
     invoker: SignatureParserInvoker,
@@ -714,23 +713,6 @@ impl Parser {
     let kind = match invoker {
       SignatureParserInvoker::ForeignFunction => ast::SignatureKind::ForeignFunction,
       SignatureParserInvoker::Function => ast::SignatureKind::Function,
-      SignatureParserInvoker::Effect => ast::SignatureKind::Effect,
-    };
-
-    let effects_used = if self.is(&lexer::TokenKind::Uses) {
-      self.skip()?;
-
-      let mut effects_used = vec![self.parse_name()?];
-
-      while self.is(&lexer::TokenKind::Comma) {
-        self.skip()?;
-
-        effects_used.push(self.parse_name()?);
-      }
-
-      effects_used
-    } else {
-      Vec::default()
     };
 
     Ok(ast::Signature {
@@ -739,7 +721,6 @@ impl Parser {
       is_variadic,
       return_type_id: self.id_generator.next_type_id(),
       kind,
-      effects_used,
     })
   }
 
@@ -839,7 +820,7 @@ impl Parser {
 
     let token = self.get_token()?;
 
-    // TODO: In the future, type aliases, constants, enums, and effects should all be able to be defined under any kind of scope, not just as a top-level node.
+    // TODO: In the future, type aliases, constants, and enums should all be able to be defined under any kind of scope, not just as a top-level node.
     Ok(match token {
       lexer::TokenKind::Func => ast::Item::Function(std::rc::Rc::new(self.parse_function()?)),
       lexer::TokenKind::Foreign => {
@@ -848,7 +829,6 @@ impl Parser {
       lexer::TokenKind::Enum => ast::Item::Union(std::rc::Rc::new(self.parse_union()?)),
       lexer::TokenKind::Type => ast::Item::TypeDef(std::rc::Rc::new(self.parse_type_def()?)),
       lexer::TokenKind::Import => ast::Item::Import(std::rc::Rc::new(self.parse_import()?)),
-      lexer::TokenKind::Effect => ast::Item::Effect(std::rc::Rc::new(self.parse_effect()?)),
       lexer::TokenKind::Const => ast::Item::Constant(std::rc::Rc::new(self.parse_constant(false)?)),
       _ => return Err(self.expected("top-level construct")),
     })
@@ -1191,8 +1171,6 @@ impl Parser {
       lexer::TokenKind::Unsafe => ast::Expr::Unsafe(std::rc::Rc::new(self.parse_unsafe()?)),
       lexer::TokenKind::Sizeof => ast::Expr::Sizeof(std::rc::Rc::new(self.parse_sizeof()?)),
       lexer::TokenKind::Match => ast::Expr::Match(std::rc::Rc::new(self.parse_match()?)),
-      lexer::TokenKind::Try => ast::Expr::Try(std::rc::Rc::new(self.parse_try()?)),
-      lexer::TokenKind::Resume => ast::Expr::Resume(std::rc::Rc::new(self.parse_resume()?)),
       lexer::TokenKind::Identifier(_) => {
         ast::Expr::Reference(std::rc::Rc::new(self.parse_reference()?))
       }
@@ -1655,9 +1633,6 @@ impl Parser {
   }
 
   fn parse_closure(&mut self) -> diagnostic::Maybe<ast::Closure> {
-    // TODO: Support for no parentheses when parsed as an effect handler.
-    // CONSIDER: Adding a `ClosureKind` field to closure, to specify that it is an effect handler. This will be useful during lowering, as effect handler closures might need slightly different logic, or be more restrictive.
-
     let mut captures = Vec::new();
     let registry_id = self.id_generator.next_registry_id();
     let mut parameters = Vec::new();
@@ -1701,7 +1676,6 @@ impl Parser {
     Self::check_llvm_size(parameters.len())?;
 
     let signature = ast::Signature {
-      effects_used: Vec::default(),
       is_variadic: false,
       kind: ast::SignatureKind::Closure,
       parameters,
@@ -1885,105 +1859,6 @@ impl Parser {
     }
 
     Ok(types::Type::Tuple(types::TupleType(element_types)))
-  }
-
-  /// effect %name (%signature)?
-  fn parse_effect(&mut self) -> diagnostic::Maybe<ast::Effect> {
-    self.skip_one(&lexer::TokenKind::Effect)?;
-
-    let name = self.parse_name()?;
-
-    let signature = if self.is(&lexer::TokenKind::ParenthesesL) {
-      self.parse_signature(SignatureParserInvoker::Effect)?
-    } else {
-      ast::Signature {
-        effects_used: Vec::default(),
-        is_variadic: false,
-        kind: ast::SignatureKind::Effect,
-        parameters: Vec::default(),
-        // NOTE: The return type of effects is always `unit`. It shouldn't
-        // be left as `None` because it would create a type variable for it
-        // during inference, which may cause unexpected behavior (such as the
-        // return type's type variable getting unified against a concrete type).
-        return_type_hint: Some(types::Type::Unit),
-        return_type_id: self.id_generator.next_type_id(),
-      }
-    };
-
-    Ok(ast::Effect { name, signature })
-  }
-
-  /// try %expr (with %effect_handler)+ (default: %effect_handler)?
-  fn parse_try(&mut self) -> diagnostic::Maybe<ast::Try> {
-    self.skip_one(&lexer::TokenKind::Try)?;
-
-    let expr = self.parse_expr()?;
-    let mut handlers = Vec::new();
-
-    // TODO: Require at least one iteration.
-    while self.is(&lexer::TokenKind::With) {
-      let handler = self.parse_effect_handler(false)?;
-
-      handlers.push(handler);
-    }
-
-    // FIXME: This is a temporary measure.
-    if handlers.is_empty() {
-      return Err(self.expected("at least one effect handler"));
-    }
-
-    let default = if self.is(&lexer::TokenKind::Default) {
-      self.skip()?;
-      self.skip_one(&lexer::TokenKind::Colon)?;
-
-      Some(self.parse_effect_handler(true)?)
-    } else {
-      None
-    };
-
-    Ok(ast::Try {
-      expr,
-      handlers,
-      default,
-    })
-  }
-
-  fn parse_effect_handler(&mut self, is_default: bool) -> diagnostic::Maybe<ast::EffectHandler> {
-    if is_default {
-      self.skip_one(&lexer::TokenKind::Default)?;
-    } else {
-      self.skip_one(&lexer::TokenKind::With)?;
-    }
-
-    let name = self.parse_name()?;
-    let closure = self.parse_closure()?;
-
-    Ok(ast::EffectHandler { name, closure })
-  }
-
-  /// raise %name %arguments
-  fn parse_raise(&mut self) -> diagnostic::Maybe<ast::Raise> {
-    self.skip_one(&lexer::TokenKind::Raise)?;
-
-    let effect_name = self.parse_name()?;
-
-    // CONSIDER: Creating a `parse_argument` common utility function.
-    // TODO: Allow short form as well (name only, without parentheses).
-
-    Ok(ast::Raise {
-      effect_name,
-      // TODO: Awaiting parsing of arguments.
-      arguments: Vec::new(),
-    })
-  }
-
-  /// resume if %expr
-  fn parse_resume(&mut self) -> diagnostic::Maybe<ast::Resume> {
-    self.skip_many(&[lexer::TokenKind::Resume, lexer::TokenKind::If])?;
-
-    let condition = self.parse_expr()?;
-
-    Ok(ast::Resume { condition })
   }
 
   /// '[' %expr ']'

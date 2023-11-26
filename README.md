@@ -19,7 +19,6 @@
 * Powerful type inference, based on [Hindley-Milner type system](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system)
 * [Parametric polymorphism via generics](https://en.wikipedia.org/wiki/Parametric_polymorphism)
 * [Structural typing](https://en.wikipedia.org/wiki/Structural_type_system)
-* [Effect system](https://en.wikipedia.org/wiki/Effect_system)
 * [Closures](https://en.wikipedia.org/wiki/Closure_(computer_programming))
 
 ## Principles
