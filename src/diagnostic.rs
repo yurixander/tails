@@ -48,7 +48,6 @@ pub enum Diagnostic {
   CannotUseOutsideUnsafe,
   Redefinition(String),
   Redeclaration(symbol_table::SymbolPath),
-  SymbolCannotBeShadowed(String),
   QualifiedSymbolNotFound(String),
   MultipleEntryPoints,
   UndefinedReference(String),

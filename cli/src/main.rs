@@ -1,7 +1,7 @@
 use std::fs;
 
 use structopt::StructOpt;
-use tails::{pass, symbol_table};
+use tails::pass;
 
 #[derive(StructOpt)]
 enum Command {

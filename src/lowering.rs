@@ -48,11 +48,6 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
     todo!();
   }
 
-  fn visit_try(&mut self, _item: &ast::Try) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
-    // TODO: Implement. This would make use of the `invoke` instruction?
-    todo!()
-  }
-
   fn visit_union_instance(
     &mut self,
     union_instance: &ast::UnionInstance,

@@ -140,9 +140,6 @@ pub trait Visitor<T = ()> {
   define_visit_fn!(visit_union_instance, ast::UnionInstance);
   define_visit_fn!(visit_union_variant, ast::UnionVariant);
   define_visit_fn!(visit_tuple_indexing, ast::TupleIndex);
-  define_visit_fn!(visit_effect, ast::Effect);
-  define_visit_fn!(visit_try, ast::Try);
-  define_visit_fn!(visit_resume, ast::Resume);
   define_visit_fn!(visit_pointer_indexing, ast::PointerIndexing);
   define_visit_fn!(visit_pointer_assignment, ast::PointerAssignment);
   define_visit_fn!(visit_constant, ast::Constant);
@@ -188,7 +185,6 @@ impl Visitable for ast::Item {
       ast::Item::UnionVariant(union_variant) => union_variant.accept(visitor),
       ast::Item::ClosureCapture(closure_capture) => closure_capture.accept(visitor),
       ast::Item::Import(import) => import.accept(visitor),
-      ast::Item::Effect(effect) => effect.accept(visitor),
       ast::Item::ForeignFunction(foreign_function) => foreign_function.accept(visitor),
       ast::Item::PointerAssignment(pointer_assignment) => pointer_assignment.accept(visitor),
     }
@@ -218,7 +214,6 @@ impl Visitable for ast::Item {
       ast::Item::UnionVariant(union_variant) => union_variant.traverse_children(visitor),
       ast::Item::ClosureCapture(closure_capture) => closure_capture.traverse_children(visitor),
       ast::Item::Import(import) => import.traverse_children(visitor),
-      ast::Item::Effect(effect) => effect.traverse_children(visitor),
       ast::Item::PointerAssignment(pointer_assignment) => {
         pointer_assignment.traverse_children(visitor)
       }
@@ -241,10 +236,8 @@ impl Visitable for ast::Expr {
       ast::Expr::Group(group) => group.accept(visitor),
       ast::Expr::Object(object) => object.accept(visitor),
       ast::Expr::If(if_) => if_.accept(visitor),
-      ast::Expr::Try(try_) => try_.accept(visitor),
       ast::Expr::Match(match_) => match_.accept(visitor),
       ast::Expr::Block(block) => block.accept(visitor),
-      ast::Expr::Resume(resume) => resume.accept(visitor),
       ast::Expr::Sizeof(size_of) => size_of.accept(visitor),
       ast::Expr::PointerIndexing(pointer_indexing) => pointer_indexing.accept(visitor),
       ast::Expr::Tuple(tuple) => tuple.accept(visitor),
@@ -278,10 +271,8 @@ impl Visitable for ast::Expr {
       ast::Expr::Group(group) => group.traverse_children(visitor),
       ast::Expr::Object(object) => object.traverse_children(visitor),
       ast::Expr::If(if_) => if_.traverse_children(visitor),
-      ast::Expr::Try(try_) => try_.traverse_children(visitor),
       ast::Expr::Match(match_) => match_.traverse_children(visitor),
       ast::Expr::Block(block) => block.traverse_children(visitor),
-      ast::Expr::Resume(resume) => resume.traverse_children(visitor),
       ast::Expr::Sizeof(size_of) => size_of.traverse_children(visitor),
       ast::Expr::PointerIndexing(pointer_indexing) => pointer_indexing.traverse_children(visitor),
       ast::Expr::Tuple(tuple) => tuple.traverse_children(visitor),
@@ -346,12 +337,6 @@ impl Visitable for ast::ClosureCapture {
   }
 }
 
-impl Visitable for ast::Effect {
-  fn accept<T>(&self, visitor: &mut dyn Visitor<T>) -> T {
-    visitor.visit_effect(self)
-  }
-}
-
 impl Visitable for ast::ForeignStatic {
   fn accept<T>(&self, visitor: &mut dyn Visitor<T>) -> T {
     visitor.visit_foreign_var(self)
@@ -411,16 +396,6 @@ impl Visitable for ast::ObjectAccess {
   }
 }
 
-impl Visitable for ast::Resume {
-  fn accept<T>(&self, visitor: &mut dyn Visitor<T>) -> T {
-    visitor.visit_resume(self)
-  }
-
-  fn traverse_children<T>(&self, visitor: &mut dyn Visitor<T>) {
-    self.condition.traverse(visitor);
-  }
-}
-
 impl Visitable for ast::TupleIndex {
   fn accept<T>(&self, visitor: &mut dyn Visitor<T>) -> T {
     visitor.visit_tuple_indexing(self)
@@ -450,20 +425,6 @@ impl Visitable for ast::Reference {
 
   fn traverse_children<T>(&self, visitor: &mut dyn Visitor<T>) {
     self.path.traverse(visitor);
-  }
-}
-
-impl Visitable for ast::Try {
-  fn accept<T>(&self, visitor: &mut dyn Visitor<T>) -> T {
-    visitor.visit_try(self)
-  }
-
-  fn traverse_children<T>(&self, visitor: &mut dyn Visitor<T>) {
-    self.expr.traverse(visitor);
-    // visitor.visit_effect(&try_.handlers);
-
-    // TODO: Visit effect handlers, and default effect handler.
-    todo!();
   }
 }
 

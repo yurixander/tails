@@ -373,9 +373,6 @@ impl Infer<'_> for ast::Expr {
       ast::Expr::UnionInstance(union_instance) => parent.transient(union_instance.as_ref()),
       ast::Expr::Block(block) => parent.transient(block.as_ref()),
       ast::Expr::With(with) => parent.transient(with.as_ref()),
-      // TODO: Handle inference of effect constructs.
-      ast::Expr::Try(try_) => todo!(),
-      ast::Expr::Resume(resume) => todo!(),
     }
   }
 }
@@ -398,8 +395,6 @@ impl Infer<'_> for ast::Item {
       ast::Item::PointerAssignment(pointer_assignment) => {
         parent.transient(pointer_assignment.as_ref())
       }
-      // TODO: Handle inference of effect constructs.
-      ast::Item::Effect(effect) => todo!(),
     }
   }
 }
