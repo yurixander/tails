@@ -7,7 +7,7 @@
 </div>
 <br />
 
-🎯 **Goal:** The intent is to create a programming language that balances simplicity and performance, with a particular focus on functional programming paradigms and compile-time safety mechanisms. The language aims to facilitate explicit tracking of side-effects and embrace a predictable coding environment. See the [principles](#principles) section for more information.
+🎯 **Goal:** The intent is to create a programming language that balances simplicity and performance, focusing on functional programming paradigms and compile-time safety mechanisms. The language aims to facilitate explicit tracking of side effects and embrace a predictable coding environment. See the [principles](#principles) section for more information.
 
 ## Features
 
@@ -23,25 +23,25 @@
 
 ## Principles
 
-* ✨ **Simplicity**: The language should be easy to learn but still powerful enough for complex tasks. A simple syntax helps lower the barrier to entry. <br /><br />
-* 📐 **Consistency & orthogonality**: Stick to one way of doing things. The language should use a few basic constructs that can combine in many ways. This makes it easier to learn and use.<br /><br />
+* ✨ **Simplicity**: The language should be easy to learn but powerful enough for complex tasks. A simple syntax helps lower the barrier to entry. <br /><br />
+* 📐 **Consistency & orthogonality**: Stick to one way of doing things. The language should use a few basic constructs that can be combined in many ways. This makes it easier to learn and use.<br /><br />
 * 🔮 **Predictable, explicit, and deterministic semantics**: The type system should be straightforward and avoid surprises. No guessing games—you should always know what the code is doing.<br /><br />
-* ❕ **Opinionated**: Make the language so that there's a 'right way' to do things. This ensures everyone writes code that looks and works similarly, making it easier to understand and collaborate.<br /><br />
+* ❕ **Opinionated**: Make the language so there's a 'right way' to do things. This ensures everyone writes code that looks and works similarly, making it easier to understand and collaborate.<br /><br />
 * 🙅🏻‍♂️ **No meta-programming or reflection**: Avoid features like meta-programming and reflection. They're often misused and make the language harder to learn and less consistent.<br /><br />
-* ⚡ **Compile-time emphasis**: Do most of the heavy lifting, like error checking and memory management, when the code is compiled. This makes the executables faster and more reliable.<br /><br />
-* ⛓️ **Functional paradigm**: Use functional programming to make code clearer and reduce errors. It minimizes side-effects and makes the code easier to reason about.
+* ⚡ **Compile-time emphasis**: Do most heavy lifting, like error checking and memory management, when the code is compiled. This makes the executables faster and more reliable.<br /><br />
+* ⛓️ **Functional paradigm**: Use functional programming to simplify code and reduce errors. It minimizes side effects and makes the code easier to reason about.
 
 ## Hello world example
 
 <img alt="Syntax highlighting of a code snippet showing an application that prints 'hello world' to the console" src="./github/hello-world.png" />
 
-> The `foreign` keyword lets you include functions and variables from other programming languages. You can put multiple such items in a single foreign block to keep your code neat.
+> The `foreign` keyword lets you include functions and variables from other programming languages. You can put multiple such items in a foreign block to keep your code neat.
 
 > The `unsafe` keyword is used for actions that have potential risks, like calling foreign functions or using pointers. This is much like Rust's `unsafe` keyword and helps you be explicit about the risky parts of your code.
 
 > `nat` is a type that stands for unsigned integers, which are 32-bit by default. You can also use variations like `nat8`, `nat16`, and `nat64` for different bit sizes.
 
-> The compiler doesn't automatically coerce types, so you can use `0::nat` to specify a literal's type. This comes in handy when the type you want doesn't match the compiler's default 32-bit numeric type.
+> The compiler doesn't automatically coerce types, so you can use `0::nat` to specify a literal's type. This is handy when the type you want doesn't match the compiler's default 32-bit numeric type.
 
 ## Building and running
 
