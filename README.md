@@ -1,8 +1,8 @@
 <div align="center">
   <img width="100" alt="Logo resembling a cat" src="./github/logo.png" />
-
+  <br />
+  <br />
   <img alt="Preview" src="./github/preview.png" />
-
   <p>An experimental functional systems programming language,<br />written in Rust, and powered by <a href="https://en.wikipedia.org/wiki/LLVM">LLVM</a> as a backend.</p>
 </div>
 <br />
