@@ -503,9 +503,3 @@ impl Type {
 
   // CONSIDER: Add a `find_substitution_id` helper function (or trait) that will perform abstract operations on substitute-able types, such as type variables and `typeof` types. For example, it would re-perform the unification operation with its substitution if it is bound, and also perform occurs checks. This would standardize the process of substitution.
 }
-
-impl From<SignatureType> for Type {
-  fn from(signature_type: SignatureType) -> Self {
-    Type::Signature(signature_type)
-  }
-}

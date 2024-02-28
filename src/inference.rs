@@ -2,12 +2,20 @@ use crate::{assert_extract, ast, auxiliary, resolution, symbol_table, types};
 
 pub type ConstraintSet = Vec<(resolution::UniverseStack, Constraint)>;
 
+#[derive(Clone, Debug)]
 pub(crate) struct InferenceResult {
   pub constraints: ConstraintSet,
   pub universe_id: Option<symbol_table::UniverseId>,
   pub type_var_substitutions: symbol_table::SubstitutionEnv,
   pub type_env: symbol_table::TypeEnvironment,
   pub ty: types::Type,
+  /// If the finalized type may be a generic type and thus requires an associated universe,
+  /// this field will be set to act as a carry-over for that associated universe id.
+  ///
+  /// For example, when inferring a call site to a polymorphic function, the call site's type
+  /// will be attached to the callee's return value. If that callee's return value's type is a
+  /// generic type, then the callee's universe is needed.
+  // pub leftover_universe_id: Option<symbol_table::UniverseId>,
   pub id_count: usize,
 }
 
@@ -730,14 +738,14 @@ impl Infer<'_> for ast::Function {
     // when it hasn't been set yet.
     context
       .type_env
-      .insert(self.type_id, types::Type::from(signature_type.clone()));
+      .insert(self.type_id, types::Type::Signature(signature_type.clone()));
 
     context.constrain(
       self.body.as_ref(),
       signature_type.return_type.as_ref().clone(),
     );
 
-    context.finalize(types::Type::from(signature_type))
+    context.finalize(types::Type::Signature(signature_type))
   }
 }
 
@@ -968,6 +976,8 @@ impl Infer<'_> for ast::CallSite {
 
     context.constrain(&self.callee_expr, callee_type);
 
+    // TRACE: (test:vector_generics) Finalizing with the return type of a function is problematic, because if the return value's type is a generic (say, as in the case with the id function), then a type variable that ultimately points to generic type would be returned. The problem is that that generic type is finalized with no associated universe. So when resolution occurs, there will be a missing universe for that generic type. This means that it must be somewhat reworked, seems like call chains must take into account universe stacks as the calls progress, to accommodate for this edge case.
+
     // The type of the call expression is that of the callee's return
     // type.
     context.finalize(return_type)
@@ -1079,7 +1089,7 @@ impl Infer<'_> for ast::Closure {
     // when it hasn't been set yet.
     context.type_env.insert(
       self.type_id,
-      types::Type::from(signature_type.clone()).clone(),
+      types::Type::Signature(signature_type.clone()).clone(),
     );
 
     for capture in &self.captures {
@@ -1088,7 +1098,7 @@ impl Infer<'_> for ast::Closure {
 
     context.constrain(&self.body, signature_type.return_type.as_ref().clone());
 
-    context.finalize(types::Type::from(signature_type))
+    context.finalize(types::Type::Signature(signature_type))
   }
 }
 

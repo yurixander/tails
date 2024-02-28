@@ -138,6 +138,8 @@ impl<'a> InstantiationHelper<'a> {
       })
     }
 
+    dbg!(self.universes.clone());
+
     (self.universes, diagnostics_helper.diagnostics)
   }
 

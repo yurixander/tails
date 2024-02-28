@@ -301,6 +301,8 @@ impl<'a> BaseResolutionHelper<'a> {
         .strip_all_monomorphic_stub_layers(self.symbol_table)
         .or(Err(TypeResolutionError::StubTypeMissingSymbolTableEntry))?;
 
+      dbg!(stripped_target.clone());
+
       let resolved_target = self.resolve(&stripped_target, universe_stack)?;
 
       // OPTIMIZE: Avoid cloning; currently only cloning to satisfy borrow checker.
@@ -312,9 +314,14 @@ impl<'a> BaseResolutionHelper<'a> {
       .follow_link(&stub_type.path.link_id)
       .ok_or(TypeResolutionError::StubTypeMissingSymbolTableEntry)?;
 
+    let associated_universe = self
+      .universes
+      .get(&stub_type.universe_id)
+      .expect("a universe is not registered for the polymorphic stub type artifact");
+
     assert!(
-      self.universes.contains_key(&stub_type.universe_id),
-      "a universe is not registered for the polymorphic stub type artifact"
+      !associated_universe.is_empty(),
+      "universe associated with polymorphic stub type should not be empty, as it would imply that at least a substitution is missing",
     );
 
     // By this point, it is known that the stub type is polymorphic, and
