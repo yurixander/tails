@@ -274,13 +274,3 @@ impl CallGraph {
     Ok(())
   }
 }
-
-pub(crate) fn join_two_opts<'a, A, B>(
-  a: &'a Option<A>,
-  b: &'a Option<B>,
-) -> Option<(&'a A, &'a B)> {
-  match (a, b) {
-    (Some(a), Some(b)) => Some((a, b)),
-    _ => None,
-  }
-}

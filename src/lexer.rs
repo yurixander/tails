@@ -460,7 +460,9 @@ impl Lexer {
       self.indent_level = self.indent_counter;
 
       return Some(TokenKind::Indent);
-    } else if self.indent_counter < self.indent_level {
+    }
+
+    if self.indent_counter < self.indent_level {
       self.indent_level -= 1;
 
       return Some(TokenKind::Dedent);
@@ -483,7 +485,7 @@ impl Lexer {
     // Reset the indentation counter immediately after reading a comment.
     self.indent_counter = 0;
 
-    return Ok(Some(comment_token));
+    Ok(Some(comment_token))
   }
 
   /// Upon beginning to lex a new line, the indentation counter is reset to 0.

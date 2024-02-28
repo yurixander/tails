@@ -462,9 +462,10 @@ impl TypeUnificationContext<'_> {
     if !signature_a.arity_mode.is_variadic() && !signature_b.arity_mode.is_variadic() {
       return true;
     }
+
     // In case where they are both variadic, their minimum parameter requirement
     // must match.
-    else if signature_a.arity_mode.is_variadic() && signature_b.arity_mode.is_variadic() {
+    if signature_a.arity_mode.is_variadic() && signature_b.arity_mode.is_variadic() {
       // REVIEW: Is this a bug or an expected, valid input? If it's not a bug, it should be using `Result` instead.
       assert!(signature_a
         .arity_mode

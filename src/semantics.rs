@@ -198,7 +198,7 @@ impl<'a> visit::Visitor for SemanticCheckContext<'a> {
       .resolve_by_id(&function.type_id, self.universe_stack.clone())
       .expect(auxiliary::BUG_MISSING_TYPE);
 
-    if function.name == lowering::ENTRY_POINT_NAME {
+    if function.name == lowering::ENTRY_POINT_FUNCTION_NAME {
       let main_function_signature = types::Type::Signature(types::SignatureType {
         parameter_types: vec![
           types::Type::Primitive(types::PrimitiveType::Integer(

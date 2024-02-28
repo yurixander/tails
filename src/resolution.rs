@@ -10,7 +10,6 @@ pub(crate) enum TypeResolutionError {
   StubTypeMissingSymbolTableEntry,
   EmptyUniverseStackWhenResolvingGeneric,
   CouldNotFindSubstitutionInAnyUniverseInUniverseStack,
-  MissingUniverse,
   NoUniversesWhenResolvingGeneric,
 }
 
@@ -248,7 +247,11 @@ impl<'a> BaseResolutionHelper<'a> {
     // thus no corresponding substitution environment.
     if universe_stack.is_empty() {
       return Err(TypeResolutionError::EmptyUniverseStackWhenResolvingGeneric);
-    } else if self.universes.is_empty() {
+    }
+
+    // There should be at least one universe in the universe stack,
+    // otherwise it would not be possible to resolve the generic.
+    if self.universes.is_empty() {
       return Err(TypeResolutionError::NoUniversesWhenResolvingGeneric);
     }
 
@@ -257,10 +260,10 @@ impl<'a> BaseResolutionHelper<'a> {
     // NOTE: The substituted type might be a type stub, or a generic, which
     // is acceptable. The only job of this logic is to substitute one layer
     // of the type.
-    let substitution = self
-      .get_in_universe_stack(substitution_id, &universe_stack)
-      .map_err(|_| TypeResolutionError::MissingUniverse)?
-      .ok_or_else(|| TypeResolutionError::CouldNotFindSubstitutionInAnyUniverseInUniverseStack)?;
+    let substitution = match self.get_in_universe_stack(substitution_id, &universe_stack) {
+      Ok(Some(substitution)) => substitution,
+      _ => return Err(TypeResolutionError::CouldNotFindSubstitutionInAnyUniverseInUniverseStack),
+    };
 
     // TODO: Perform `!occurs_in` check to prevent stack overflow / infinite loop with the substitution and the original type. Use the original type and the substitution as the operands for the `occurs_in` assertion. Since this function is `Result`, return `Err` instead of having an assertion (is it acceptable for a type to resolve to itself?).
     // FIXME: This won't work for this case; recursion cannot be simply detected via stub type stripping, as instantiation is involved at each recursive step! Instead, some sort of state must be passed around resolution steps to detect recursion.

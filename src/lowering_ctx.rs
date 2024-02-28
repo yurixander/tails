@@ -677,7 +677,9 @@ impl<'a, 'llvm> LoweringContext<'a, 'llvm> {
     // Only build a single return instruction per block.
     if self.get_current_block().get_terminator().is_some() {
       return;
-    } else if let Some(return_value) = return_value {
+    }
+
+    if let Some(return_value) = return_value {
       self
         .llvm_builder
         .build_return(Some(&return_value))

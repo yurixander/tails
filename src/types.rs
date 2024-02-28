@@ -111,8 +111,9 @@ impl StubType {
       if seen_stub_types.contains(&current.universe_id) {
         return Err(TypeStripError::RecursionDetected);
       }
+
       // Only strip away stub types that have no generic hints (monomorphic stub types).
-      else if !current.generic_hints.is_empty() {
+      if !current.generic_hints.is_empty() {
         return Ok(Type::Stub(current));
       }
 

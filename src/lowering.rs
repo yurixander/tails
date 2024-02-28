@@ -11,10 +11,7 @@
 //! In the case that any assumptions are violated, diagnostics will not be emitted, and
 //! instead, a panic will occur.
 
-use inkwell::{
-  types::BasicType,
-  values::{AnyValue, BasicValue},
-};
+use inkwell::{types::BasicType, values::BasicValue};
 
 use crate::{
   assert_extract, ast, auxiliary,
@@ -22,7 +19,7 @@ use crate::{
   resolution, symbol_table, types, visit,
 };
 
-pub(crate) const ENTRY_POINT_NAME: &str = "main";
+pub(crate) const ENTRY_POINT_FUNCTION_NAME: &str = "main";
 
 const BUG_CLOSURE_ENV_PARAM: &str = "LLVM function buffer for current closure should contain at least one parameter for the closure captures environment";
 
@@ -1547,7 +1544,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
       .expect(auxiliary::BUG_MISSING_TYPE);
 
     let llvm_function_type = self.lower_signature_type(&signature_type, None);
-    let is_entry_point = function.name == ENTRY_POINT_NAME;
+    let is_entry_point = function.name == ENTRY_POINT_FUNCTION_NAME;
 
     // Name mangling should not be applied to the entry function.
     let llvm_function_name = if is_entry_point {

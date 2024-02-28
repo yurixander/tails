@@ -744,7 +744,6 @@ impl Infer<'_> for ast::Function {
 impl Infer<'_> for ast::Reference {
   fn infer(&self, parent: &InferenceContext<'_>) -> InferenceResult {
     let mut context = parent.inherit(None);
-
     let ty = context.visit_target_via_link(&self.path.link_id).unwrap();
 
     context.type_env.insert(self.type_id, ty.clone());

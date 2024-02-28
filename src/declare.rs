@@ -75,7 +75,7 @@ impl<'a> DeclarationContext {
       return false;
     }
 
-    // FIXME: Must have an assertion that
+    // FIXME: Must have an assertion that ...
 
     self.bind(symbol, id);
 
@@ -159,7 +159,7 @@ impl<'a> visit::Visitor for DeclarationContext {
 
   fn visit_function(&mut self, function: &ast::Function) {
     // REVISE: This must be checked only within the initial package. Currently, the main function can be defined elsewhere on its dependencies (even if they're libraries).
-    if function.name == lowering::ENTRY_POINT_NAME {
+    if function.name == lowering::ENTRY_POINT_FUNCTION_NAME {
       if self.symbol_table.entry_function_id.is_some() {
         self
           .diagnostics

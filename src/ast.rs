@@ -80,7 +80,10 @@ pub struct Generics {
   // TODO: Constraints.
 }
 
-/// A parentheses expression.
+/// A parentheses expression which encapsulates another expression.
+///
+/// This is useful to enforce precedence in the AST, and to make
+/// operations more explicit and thus easier to understand.
 #[derive(Debug)]
 pub struct Group(pub Expr);
 

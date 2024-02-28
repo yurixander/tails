@@ -28,7 +28,7 @@ pub struct LifetimeAnalysisContext<'a> {
 
 // TODO: After malloc'd pointers reach their end of life, they must be freed. This can be done by building an LLVM `free` instruction, however this means that we'd need access to the LLVM API/module/context during this pass, or at least a way to communicate when and what to free (ex. a symbol table of what things should be freed, and where, that is then passed onto the LLVM pass). Or, to abstract more instead blindly freeing pointers, we can insert instead a call to the `drop` function from a built-in `Drop` trait, so similar to Rust and also similar to deconstructors in C++.
 impl<'a> LifetimeAnalysisContext<'a> {
-  const BUG_MISSING_ATTRIBUTE: &str =
+  const BUG_MISSING_ATTRIBUTE: &'static str =
     "all bindings should have corresponding attribute metadata registered";
 
   pub(crate) fn new(
