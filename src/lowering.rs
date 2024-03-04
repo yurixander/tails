@@ -1043,7 +1043,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
 
     let signature_type = foreign_fn
       .signature
-      .as_signature_type(
+      .as_resolved_signature_type(
         foreign_fn
           .signature
           .return_type_hint
@@ -1536,7 +1536,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
 
     let signature_type = function
       .signature
-      .as_signature_type(
+      .as_resolved_signature_type(
         return_type,
         self.resolution_helper,
         self.universe_stack.clone(),
@@ -1655,7 +1655,7 @@ impl<'a, 'llvm> visit::Visitor<Option<inkwell::values::BasicValueEnum<'llvm>>>
 
     let signature_type = closure
       .signature
-      .as_signature_type(
+      .as_resolved_signature_type(
         return_type,
         self.resolution_helper,
         self.universe_stack.clone(),

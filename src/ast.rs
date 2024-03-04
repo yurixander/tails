@@ -473,7 +473,7 @@ impl Signature {
   ///
   /// This will return `None` if a parameter does not have an
   /// associated type on the given type environment.
-  pub(crate) fn as_signature_type<'a>(
+  pub(crate) fn as_resolved_signature_type<'a>(
     &self,
     return_type: types::Type,
     resolution_helper: &resolution::ResolutionHelper<'a>,
@@ -502,6 +502,28 @@ impl Signature {
       parameter_types,
       arity_mode,
     })
+  }
+
+  pub(crate) fn as_signature_type(&self) -> types::SignatureType {
+    let mut parameter_types = Vec::with_capacity(self.parameters.len());
+
+    for parameter in &self.parameters {
+      parameter_types.push(parameter.type_hint.clone().unwrap());
+    }
+
+    let arity_mode = if self.is_variadic {
+      types::ArityMode::Variadic {
+        minimum_required_parameters: self.parameters.len(),
+      }
+    } else {
+      types::ArityMode::Fixed
+    };
+
+    types::SignatureType {
+      return_type: Box::new(self.return_type_hint.clone().unwrap()),
+      parameter_types,
+      arity_mode,
+    }
   }
 }
 
@@ -602,6 +624,14 @@ impl Callable {
       Callable::ForeignFunction(foreign_function) => foreign_function.registry_id,
       Callable::Function(function) => function.registry_id,
       Callable::Closure(closure) => closure.registry_id,
+    }
+  }
+
+  pub(crate) fn get_signature_type(&self) -> types::SignatureType {
+    match self {
+      Callable::Closure(closure) => closure.signature.as_signature_type(),
+      Callable::Function(function) => function.signature.as_signature_type(),
+      Callable::ForeignFunction(foreign_function) => foreign_function.signature.as_signature_type(),
     }
   }
 }

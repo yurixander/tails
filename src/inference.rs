@@ -301,13 +301,20 @@ impl<'a> InferenceContext<'a> {
   }
 
   pub(crate) fn finalize(self, ty: types::Type) -> InferenceResult {
+    // TODO: Handle result type.
+    let stripped_type = ty
+      .try_strip_all_monomorphic_stub_layers(self.symbol_table)
+      .unwrap();
+
+    assert!(!stripped_type.is_a_generic());
+
     InferenceResult {
       constraints: self.constraints,
       universe_id: self.own_universe_id,
       type_var_substitutions: self.type_var_substitutions,
       type_env: self.type_env,
       id_count: self.id_generator.get_counter(),
-      ty,
+      ty: stripped_type,
     }
   }
 
@@ -823,6 +830,7 @@ impl Infer<'_> for ast::Binding {
     let mut context = parent.inherit(None);
 
     // TRACE: (test:vector_generics) Could it be that the bug related to the binding is due to the possibility that the value type here below is a generic type without any universe stack entry? It seems to be a type variable when printed to the console! Which may mean that it would be substituted to a generic type? If that's the case, that's a good indicator that the current inference system is quite fragile, especially around type variables, and the inference context and utility method logic needs to be more tightly isolated to prevent contamination or accidental logic bugs.
+    // TRACE: (test:vector_generics) The value's type is not constrained if no type hint is provided. This means that the value's type (a generic) is simply inserted into the type env map (as: type variable -> stub type -> generic). So where's the associated universe for it registered? Universes are normally registered/inserted alongside constraints, but since there is no constraint made, then the generic is left without the posibility of resolution?
     let value_type = if let Some(type_hint) = &self.type_hint {
       context.constrain(&self.value, type_hint.to_owned())
     } else {
@@ -941,14 +949,25 @@ impl Infer<'_> for ast::CallSite {
     };
 
     let mut context = parent.inherit(universe_id_opt);
-    let return_type = context.create_type_variable("call_site.return");
-
-    context.type_env.insert(self.type_id, return_type.clone());
 
     // BUG: The assumption that the callee is a callable will not always hold true by this point; unification hasn't yet occurred! This will panic if the callee is indeed not a callable, instead of being more graceful with a diagnostic.
     let callee = self.strip_callee(context.symbol_table).unwrap();
 
     let callee_arity_mode = context.determine_arity_mode_for_callable(&callee);
+    let callee_signature_type = callee.get_signature_type();
+
+    let callee_return_type = callee_signature_type
+      .return_type
+      .to_owned()
+      .try_strip_all_monomorphic_stub_layers(context.symbol_table)
+      // TODO: Properly handle result.
+      .unwrap();
+
+    dbg!(callee_return_type.clone());
+
+    context
+      .type_env
+      .insert(self.type_id, callee_return_type.clone());
 
     let argument_types = self
       .arguments
@@ -966,7 +985,7 @@ impl Infer<'_> for ast::CallSite {
 
     let callee_type = types::Type::Signature(types::SignatureType {
       parameter_types: argument_types,
-      return_type: Box::new(return_type.clone()),
+      return_type: Box::new(callee_return_type.clone()),
       arity_mode: callee_arity_mode,
     });
 
@@ -980,7 +999,7 @@ impl Infer<'_> for ast::CallSite {
 
     // The type of the call expression is that of the callee's return
     // type.
-    context.finalize(return_type)
+    context.finalize(callee_return_type)
   }
 }
 

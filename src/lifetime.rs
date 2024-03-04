@@ -119,7 +119,12 @@ impl<'a> visit::Visitor for LifetimeAnalysisContext<'a> {
 
     let ty = self
       .resolution_helper
-      .resolve_by_id(&binding.type_id, self.universe_stack.clone())
+      .resolve_by_id(
+        &binding.type_id,
+        // TRACE: (test:vector_generics) The binding's type is a: variable(stub(generic)), because it was constrained against its value which is a call to a generic function which returns its input parameter, whose type is a generic (essentially the `id`` function). The universe stack at this point is empty or irrelevant, since it doesn't contain the associated universe of that generic type. So it seems like there's a gap in the type resolution system to resolve non-constrained generic types. With this commented line below, THIS pass passes (the lifetime pass). The lowering pass fails, but its because this is being inserted here. If the same is done on the lowering pass, it also passes and the test succeeds.
+        // Vec::from([symbol_table::UniverseId(19, "call_site.id".to_string())]),
+        self.universe_stack.clone(),
+      )
       .expect(auxiliary::BUG_MISSING_TYPE);
 
     // TODO: Actual implementation of determining which bindings are copyable is missing. This would be done when the traits system is complete. For now, all bindings whose types aren't primitive types are non-copyable.

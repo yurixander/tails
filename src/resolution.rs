@@ -246,6 +246,9 @@ impl<'a> BaseResolutionHelper<'a> {
     // Generics cannot be resolved without any context artifact id and
     // thus no corresponding substitution environment.
     if universe_stack.is_empty() {
+      // TRACE: (test:vector_generics) Adding the missing universe id to the universe stack makes the test pass, as expected. Make `universe_stack` mutable for debugging, to be able to run this line.
+      // universe_stack.push(symbol_table::UniverseId(19, "call_site.id".to_string()));
+
       return Err(TypeResolutionError::EmptyUniverseStackWhenResolvingGeneric);
     }
 

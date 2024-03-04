@@ -4,7 +4,7 @@
 
 use crate::{
   ast,
-  symbol_table::{self, SubstitutionEnv},
+  symbol_table::{self, SubstitutionEnv, SubstitutionId},
 };
 
 /// Object fields must be an ordered map (such as a binary tree map),
@@ -314,6 +314,28 @@ pub(crate) enum TypeStripError {
 #[derive(Debug)]
 pub(crate) enum DirectRecursionCheckError {
   SymbolTableMissingEntry,
+}
+
+pub enum Type2<T> {
+  Primitive(PrimitiveType),
+  Pointer(Box<T>),
+  Reference(Box<T>),
+  Tuple(TupleType),
+  Object(ObjectType),
+  Signature(SignatureType),
+  Union(ast::Union),
+  Range(u64, u64),
+  Opaque,
+  Unit,
+}
+
+pub struct ConcreteType(Type2<ConcreteType>);
+
+pub enum PreUnificationType {
+  Type(Type2<PreUnificationType>),
+  Variable(TypeVariable),
+  Generic(GenericType),
+  Stub(StubType),
 }
 
 #[derive(Clone, Debug)]
